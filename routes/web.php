@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\UserController;
 // });
 
 Route::get('/api/users', [UserController::class, 'index']);
+Route::get('/api/users/search', [UserController::class, 'search']);
 Route::post('/api/users', [UserController::class, 'store']);
 Route::patch('/api/users/{user}/change-role', [UserController::class, 'changeRole']);
 Route::put('/api/users/{user}', [UserController::class, 'update']);

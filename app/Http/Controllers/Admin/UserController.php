@@ -9,7 +9,7 @@ use App\Models\User;
 class UserController extends Controller
 {
     public function index(){
-        $user = User::latest()->get();
+        $user = User::latest()->paginate();
         return $user;
     }
 
@@ -47,10 +47,26 @@ class UserController extends Controller
         ]);
         return $user;
     }
+
+    public function changeRole(User $user)
+    {
+        $user->update([
+            'role' => request('role'),
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
     public function destory(User $user)
     {
         $user->delete();
 
         return response()->noContent();
+    }
+
+    public function search(Request $request){
+        $searchQuery = request('query');
+        $users = User::where('name','like', "%{$searchQuery}%")->get();
+        return response()->json($users);
     }
 }

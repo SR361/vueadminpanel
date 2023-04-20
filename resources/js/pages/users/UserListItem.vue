@@ -9,24 +9,50 @@
         index: Number,
         // selectAll: Boolean,
     })
-    const emit = defineEmits(['userDeleted']);
+    const emit = defineEmits(['userDeleted','editUser']);
     const userIdBeingDeleted = ref(null);
 
-    const confirmUserDeletion = (user) => {
-        userIdBeingDeleted.value = user.id;
+    const confirmUserDeletion = (id) => {
+        userIdBeingDeleted.value = id;
+        console.log(userIdBeingDeleted.value);
         $('#deleteUserModal').modal('show');
-    }
+    };
 
     const deleteUser = () => {
-        axios.delete(`/api/users/${userIdBeingDeleted.value}`)
+        // console.log('deleteuser : '+userIdBeingDeleted.value);
+        // axios.delete(`/api/users/${userIdBeingDeleted.value}`)
+        axios.delete('/api/users/'+userIdBeingDeleted.value)
         .then(() => {
             $('#deleteUserModal').modal('hide');
             toastr.success('User deleted successfully!');
             // users.value.data = users.value.data.filter(user => user.id !== userIdBeingDeleted.value);
-            // users.value = users.value.filter(user => user.id !== userIdBeingDeleted.value);
-            emit('userDeleted',userIdBeingDeleted.value)
+            emit('userDeleted',userIdBeingDeleted.value);
         });
     };
+
+    const editUser = (user) => {
+        emit('editUser',user);
+    }
+
+    const roles = ref([
+        {
+            name : 'ADMIN',
+            value : 1
+        },
+        {
+            name : 'USER',
+            value : 2
+        }
+    ])
+
+    const changeRole = (user, role) => {
+        axios.patch('/api/users/'+user.id+'/change-role', {
+            role : role,
+        })
+        .then(() => {
+            toastr.success('Role change successfully!');
+        })
+    }
 </script>
 <template>
     <tr>
@@ -34,12 +60,16 @@
         <td>{{ user.name }}</td>
         <td>{{ user.email }}</td>
         <td>{{ user.formatted_created_at }}</td>
-        <td>{{ user.role }}</td>
         <td>
-            <a href="#" @click.prevent="editUser(user)">
+            <select class="form-control" @change="changeRole(user,$event.target.value)">
+                <option :value="role.value" :selected="(user.role === role.name)" v-for="role in roles">{{ role.name }}</option>
+            </select>
+        </td>
+        <td>
+            <a href="#" @click.prevent="$emit('editUser', user)">
                 <i class="fa fa-edit"></i>
             </a>
-            <a href="#" @click.prevent="confirmUserDeletion(user)">
+            <a href="#" @click.prevent="confirmUserDeletion(user.id)">
                 <i class="fa fa-trash text-danger ml-2"></i>
             </a>
         </td>

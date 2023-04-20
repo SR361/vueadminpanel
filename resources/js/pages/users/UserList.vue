@@ -1,15 +1,20 @@
+
 <script setup>
-    import { ref, onMounted, reactive, handleError } from 'vue';
+//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
+    import { ref, onMounted, reactive, watch } from 'vue';
     import { Form, Field} from 'vee-validate';
     import * as yup from 'yup';
     import { useToastr } from '../../toastr.js';
+    import { debounce } from 'lodash';
+    import { Bootstrap4Pagination } from 'laravel-vue-pagination';
     import UserListItem from './UserListItem.vue';
 
     const toastr = useToastr();
-    const users = ref([]);
+    const users = ref({'data' : []});
     const editing = ref(false);
     const formValues = ref();
     const form = ref(null);
+    // const userIdBeingDeleted = ref(null);
 
     const createUserSchema = yup.object({
         name : yup.string().required(),
@@ -24,8 +29,8 @@
         }),
     });
 
-    const getUsers = () => {
-        axios.get('/api/users')
+    const getUsers = (page = 1) => {
+        axios.get('/api/users?page='+page)
         .then((response) => {
             users.value = response.data
         })
@@ -88,9 +93,29 @@
     }
 
     const userDeleted = (userId) => {
+        console.log(userId)
         users.value = users.value.filter(user => user.id !== userId);
     };
 
+    const searchQuery = ref(null);
+
+    const search = () => {
+        axios.get('/api/users/search',{
+            params: {
+                query: searchQuery.value
+            }
+        })
+        .then(response => {
+            users.value = response.data
+        })
+        .catch(error => {
+            console.log(error);
+        })
+    }
+
+    watch(searchQuery, debounce(() => {
+        search();
+    }, 300));
 
     onMounted(() => {
         getUsers();
@@ -114,9 +139,15 @@
     </div>
     <div class="content">
         <div class="container-fluid">
-            <button type="button" class="mb-2 btn btn-primary" @click="addUser">
-                Add New User
-            </button>
+            <!-- <div class="d-flex justify-content-between"></div> -->
+            <div class="d-flex justify-content-between">
+                <button type="button" class="mb-2 btn btn-primary" @click="addUser">
+                    Add New User
+                </button>
+                <div>
+                    <input type="text" v-model="searchQuery" class="form-control" placeholder="Search..." />
+                </div>
+            </div>
             <div class="card">
                 <div class="card-body">
                     <table class="table table-bordered">
@@ -131,18 +162,25 @@
                                 <th>Options</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody v-if="users.data.length > 0">
                             <UserListItem
-                                v-for="(user, index) in users"
+                                v-for="(user, index) in users.data"
                                 :key="user.id"
                                 :user=user
                                 :index=index
+                                @editUser="editUser"
                                 @user-deleted="userDeleted"
                             />
+                        </tbody>
+                        <tbody v-else>
+                            <tr>
+                                <td colspan="6" class="text-center">No result found...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+            <Bootstrap4Pagination :data="users" @pagination-change-page="getUsers" />
         </div>
     </div>
     <div class="modal fade" id="createUserModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -184,8 +222,7 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="deleteUserModal" data-backdrop="static" tabindex="-1" role="dialog"
-        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <!-- <div class="modal fade" id="deleteUserModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -205,5 +242,5 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div>-->
 </template>
