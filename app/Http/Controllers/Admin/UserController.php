@@ -9,7 +9,7 @@ use App\Models\User;
 class UserController extends Controller
 {
     public function index(){
-        $user = User::latest()->paginate();
+        $user = User::latest()->paginate(5);
         return $user;
     }
 
@@ -22,13 +22,13 @@ class UserController extends Controller
             'email' => 'required|unique:users,email',
             'password' => 'required|min:6',
         ]);
-        $user = User::create([
+        return $user = User::create([
             'name' => $request->name,
             'email'=> $request->email,
             'password'=> bcrypt($request->password)
         ]);
-
-        return $user;
+        // return response()->json(['success' => true,'data' => $user]);
+        // return $user;
     }
 
     public function update(Request $request,User $user){
@@ -73,7 +73,7 @@ class UserController extends Controller
 
     public function search(Request $request){
         $searchQuery = request('query');
-        $users = User::where('name','like', "%{$searchQuery}%")->get();
+        $users = User::where('name','like', "%{$searchQuery}%")->paginate();
         return response()->json($users);
     }
 }

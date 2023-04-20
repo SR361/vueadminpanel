@@ -33,6 +33,8 @@
         axios.get('/api/users?page='+page)
         .then((response) => {
             users.value = response.data
+            selectedUsers.value = [];
+            selectAll.value = false;
         })
     };
 
@@ -44,17 +46,17 @@
     const createUser = (values,{ resetForm, setErrors }) => {
         axios.post('/api/users', values)
         .then((response) => {
-            users.value.unshift(response.data);
+            users.value.data.unshift(response.data);
             $('#createUserModal').modal('hide');
             resetForm();
             toastr.success('User created successfully!');
         })
         .catch((error) => {
-            setErrors(error.response.data.errors);
-            // setFieldError('email',error.response.data.errors.email[0]);
-            // if (error.response.data.errors) {
-            //     setErrors(error.response.data.errors);
-            // }
+            // console.log(error);
+            if (error.response) {
+                setErrors(error.response.data.errors);
+            }
+            // setErrors(error.response.data.errors);
         })
     }
 
@@ -138,6 +140,16 @@
         })
     }
 
+    const selectAll = ref(false);
+    const selectAllUsers = () => {
+        if (selectAll.value) {
+            selectedUsers.value = users.value.data.map(user => user.id);
+        } else {
+            selectedUsers.value = [];
+        }
+        console.log(selectedUsers.value);
+    }
+
     watch(searchQuery, debounce(() => {
         search();
     }, 300));
@@ -166,8 +178,9 @@
         <div class="container-fluid">
             <!-- <div class="d-flex justify-content-between"></div> -->
             <div class="d-flex justify-content-between">
-                <div>
+                <div class="d-flex">
                     <button type="button" class="mb-2 btn btn-primary" @click="addUser">
+                        <i class="fa fa-plus-circle mr-1"></i>
                         Add New User
                     </button>
                     <div v-if="selectedUsers.length > 0">
@@ -205,11 +218,12 @@
                                 @editUser="editUser"
                                 @user-deleted="userDeleted"
                                 @toggle-selection="toggleSelection"
+                                :select-all="selectAll"
                             />
                         </tbody>
                         <tbody v-else>
                             <tr>
-                                <td colspan="6" class="text-center">No result found...</td>
+                                <td colspan="7" class="text-center">No result found...</td>
                             </tr>
                         </tbody>
                     </table>

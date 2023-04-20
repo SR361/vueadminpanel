@@ -7,7 +7,7 @@
     const props = defineProps({
         user: Object,
         index: Number,
-        // selectAll: Boolean,
+        selectAll: Boolean,
     })
     const emit = defineEmits(['userDeleted','editUser']);
     const userIdBeingDeleted = ref(null);
@@ -45,14 +45,14 @@
         }
     ])
 
-    const changeRole = (user, role) => {
+     const changeRole = (user, role) => {
         axios.patch('/api/users/'+user.id+'/change-role', {
             role : role,
         })
         .then(() => {
             toastr.success('Role change successfully!');
         })
-    }
+     }
     const toggleSelection = () => {
         emit('toggleSelection', props.user);
     }
