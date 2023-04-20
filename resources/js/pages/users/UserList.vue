@@ -92,6 +92,31 @@
         }
     }
 
+    const selectedUsers = ref([]);
+    const toggleSelection = (user) => {
+        const index = selectedUsers.value.indexOf(user.id);
+        if (index === -1) {
+            selectedUsers.value.push(user.id);
+        } else {
+            selectedUsers.value.splice(index, 1);
+        }
+        console.log(selectedUsers.value);
+    };
+
+    const bulkDelete = () => {
+        axios.delete('/api/users', {
+            data: {
+                ids: selectedUsers.value
+            }
+        })
+        .then(response => {
+            users.value.data = users.value.data.filter(user => !selectedUsers.value.includes(user.id));
+            selectedUsers.value = [];
+            selectAll.value = false;
+            toastr.success(response.data.message);
+        });
+    };
+
     const userDeleted = (userId) => {
         console.log(userId)
         users.value = users.value.filter(user => user.id !== userId);
@@ -141,9 +166,18 @@
         <div class="container-fluid">
             <!-- <div class="d-flex justify-content-between"></div> -->
             <div class="d-flex justify-content-between">
-                <button type="button" class="mb-2 btn btn-primary" @click="addUser">
-                    Add New User
-                </button>
+                <div>
+                    <button type="button" class="mb-2 btn btn-primary" @click="addUser">
+                        Add New User
+                    </button>
+                    <div v-if="selectedUsers.length > 0">
+                        <button @click="bulkDelete" type="button" class="ml-2 mb-2 btn btn-danger">
+                            <i class="fa fa-trash mr-1"></i>
+                            Delete Selected
+                        </button>
+                        <span class="ml-2">Selected {{ selectedUsers.length }} users</span>
+                    </div>
+                </div>
                 <div>
                     <input type="text" v-model="searchQuery" class="form-control" placeholder="Search..." />
                 </div>
@@ -153,7 +187,7 @@
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <!-- <th><input type="checkbox" v-model="selectAll" @change="selectAllUsers" /></th> -->
+                                <th><input type="checkbox" v-model="selectAll" @change="selectAllUsers" /></th>
                                 <th style="width: 10px">#</th>
                                 <th>Name</th>
                                 <th>Email</th>
@@ -170,6 +204,7 @@
                                 :index=index
                                 @editUser="editUser"
                                 @user-deleted="userDeleted"
+                                @toggle-selection="toggleSelection"
                             />
                         </tbody>
                         <tbody v-else>

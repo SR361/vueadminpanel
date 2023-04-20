@@ -4,7 +4,7 @@
 
     const toastr = useToastr();
 
-    defineProps({
+    const props = defineProps({
         user: Object,
         index: Number,
         // selectAll: Boolean,
@@ -53,9 +53,13 @@
             toastr.success('Role change successfully!');
         })
     }
+    const toggleSelection = () => {
+        emit('toggleSelection', props.user);
+    }
 </script>
 <template>
     <tr>
+        <td><input type="checkbox" :checked="selectAll" @change="toggleSelection" /></td>
         <td>{{ index + 1 }}</td>
         <td>{{ user.name }}</td>
         <td>{{ user.email }}</td>
