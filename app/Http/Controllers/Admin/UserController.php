@@ -9,8 +9,16 @@ use App\Models\User;
 class UserController extends Controller
 {
     public function index(){
-        $user = User::latest()->paginate();
-        return $user;
+        $users = User::query()
+            ->when(request('query'), function ($query, $searchQuery) {
+                $query->where('name', 'like', "%{$searchQuery}%");
+            })
+            ->latest()
+            ->paginate(5);
+
+        return $users;
+        // $user = User::latest()->paginate();
+        // return $user;
     }
 
     public function store(Request $request){
@@ -69,11 +77,5 @@ class UserController extends Controller
         $user->delete();
 
         return response()->noContent();
-    }
-
-    public function search(Request $request){
-        $searchQuery = request('query');
-        $users = User::where('name','like', "%{$searchQuery}%")->paginate();
-        return response()->json($users);
     }
 }
