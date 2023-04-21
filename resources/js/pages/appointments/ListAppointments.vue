@@ -99,7 +99,11 @@
                                         <td>
                                             <span class="badge" :class="`badge-${appointment.status.color}`">{{ appointment.status.name }}</span>
                                         </td>
-                                        <td>-</td>
+                                        <td>
+                                            <router-link :to="`/admin/appointments/${appointment.id}/edit`">
+                                                <i class="fa fa-edit mr-2"></i>
+                                            </router-link>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
