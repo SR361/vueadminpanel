@@ -3,8 +3,15 @@
     import axios from 'axios';
 
     const appointments = ref([]);
-    const getAppointments = () => {
-        axios.get('/api/appointments')
+    const appointmentStatus = {'SCHEDULED' : 1, 'CONFIRMED' : 2, 'CANCELLED' : 3};
+    const getAppointments = (status) => {
+        const params = {};
+        if (status) {
+            params.status = status;
+        }
+        axios.get('/api/appointments', {
+            params: params,
+        })
         .then((response) => {
             appointments.value = response.data;
         })
@@ -43,7 +50,33 @@
                             </router-link>
                         </div>
                         <div class="btn-group">
+                            <button class="btn btn-secondary" @click="getAppointments()" type="button">
+                                <span class="mr-1">All</span>
+                                <span class="badge badge-pill badge-primary"></span>
+                            </button>
+                            <button class="btn btn-secondary" @click="getAppointments(appointmentStatus.SCHEDULED)" type="button">
+                                <span class="mr-1">SCHEDULED</span>
+                                <span class="badge badge-pill badge-primary"></span>
+                            </button>
+                            <button class="btn btn-secondary" @click="getAppointments(appointmentStatus.CONFIRMED)" type="button">
+                                <span class="mr-1">CONFIRMED</span>
+                                <span class="badge badge-pill badge-success"></span>
+                            </button>
+                            <button class="btn btn-secondary" @click="getAppointments(appointmentStatus.CANCELLED)" type="button">
+                                <span class="mr-1">CANCELLED</span>
+                                <span class="badge badge-pill badge-danger"></span>
+                            </button>
+                            <!-- <button @click="getAppointments()" type="button" class="btn"
+                                :class="[typeof selectedStatus === 'undefined' ? 'btn-secondary' : 'btn-default']">
+                                <span class="mr-1">All</span>
+                                <span class="badge badge-pill badge-info">{{ appointmentsCount }}</span>
+                            </button>
 
+                            <button v-for="status in appointmentStatus" @click="getAppointments(status.value)" type="button"
+                                class="btn" :class="[selectedStatus === status.value ? 'btn-secondary' : 'btn-default']">
+                                <span class="mr-1">{{ status.name }}</span>
+                                <span class="badge badge-pill" :class="`badge-${status.color}`">{{ status.count }}</span>
+                            </button> -->
                         </div>
                     </div>
                     <div class="card">

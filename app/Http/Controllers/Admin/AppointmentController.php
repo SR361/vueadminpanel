@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Appointment;
+use App\Enums\AppointmentStatus;
 
 class AppointmentController extends Controller
 {
     public function index(){
         return Appointment::query()
+                ->when(request('status'), function ($query) {
+                    return $query->where('status', AppointmentStatus::from(request('status')));
+                })
                 ->with('client:id,first_name,last_name')
                 ->latest()
                 ->paginate()
