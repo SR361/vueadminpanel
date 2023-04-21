@@ -108,6 +108,26 @@
         console.log(selectedUsers.value);
     };
 
+    const userIdBeingDeleted = ref(null);
+
+    const confirmUserDeletion = (id) => {
+        userIdBeingDeleted.value = id;
+        $('#deleteUserModal').modal('show');
+    };
+
+    const deleteUser = () => {
+        // console.log('deleteuser : '+userIdBeingDeleted.value);
+        // axios.delete(`/api/users/${userIdBeingDeleted.value}`)
+        axios.delete('/api/users/'+userIdBeingDeleted.value)
+        .then(() => {
+            $('#deleteUserModal').modal('hide');
+            toastr.success('User deleted successfully!');
+            users.value.data = users.value.data.filter(user => user.id !== userIdBeingDeleted.value);
+            // users.value.data = users.value.filter(user => user.id !== userId);
+            // emit('userDeleted',userIdBeingDeleted.value);
+        });
+    };
+
     const bulkDelete = () => {
         axios.delete('/api/users', {
             data: {
@@ -122,10 +142,10 @@
         });
     };
 
-    const userDeleted = (userId) => {
-        console.log(userId)
-        users.value = users.value.filter(user => user.id !== userId);
-    };
+    // const userDeleted = (userId) => {
+    //     console.log(userId)
+    //     users.value = users.value.filter(user => user.id !== userId);
+    // };
 
     const searchQuery = ref(null);
 
@@ -219,7 +239,7 @@
                                 :user=user
                                 :index=index
                                 @editUser="editUser"
-                                @user-deleted="userDeleted"
+                                @confirm-user-deletion="confirmUserDeletion"
                                 @toggle-selection="toggleSelection"
                                 :select-all="selectAll"
                             />
@@ -274,7 +294,8 @@
             </div>
         </div>
     </div>
-    <!-- <div class="modal fade" id="deleteUserModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal fade" id="deleteUserModal" data-backdrop="static" tabindex="-1" role="dialog"
+        aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -294,5 +315,5 @@
                 </div>
             </div>
         </div>
-    </div>-->
+    </div>
 </template>
