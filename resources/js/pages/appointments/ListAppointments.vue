@@ -1,10 +1,19 @@
 <script setup>
-    import { onMounted, ref } from 'vue';
+    import { onMounted, ref, computed } from 'vue';
     import axios from 'axios';
 
+    const selectedStatus = ref();
     const appointments = ref([]);
-    const appointmentStatus = {'SCHEDULED' : 1, 'CONFIRMED' : 2, 'CANCELLED' : 3};
+    const appointmentStatus = ref([]);
+    const getAppointmentStatus = () => {
+        axios.get('/api/appointment-status')
+            .then((response) => {
+                appointmentStatus.value = response.data;
+            })
+    };
+
     const getAppointments = (status) => {
+        selectedStatus.value = status;
         const params = {};
         if (status) {
             params.status = status;
@@ -17,8 +26,13 @@
         })
     };
 
+    const appointmentsCount = computed(() => {
+        return appointmentStatus.value.map(status => status.count).reduce((acc, value) => acc + value, 0);
+    });
+
     onMounted(() => {
         getAppointments();
+        getAppointmentStatus();
     });
 </script>
 <template>
@@ -50,33 +64,17 @@
                             </router-link>
                         </div>
                         <div class="btn-group">
-                            <button class="btn btn-secondary" @click="getAppointments()" type="button">
-                                <span class="mr-1">All</span>
-                                <span class="badge badge-pill badge-primary"></span>
-                            </button>
-                            <button class="btn btn-secondary" @click="getAppointments(appointmentStatus.SCHEDULED)" type="button">
-                                <span class="mr-1">SCHEDULED</span>
-                                <span class="badge badge-pill badge-primary"></span>
-                            </button>
-                            <button class="btn btn-secondary" @click="getAppointments(appointmentStatus.CONFIRMED)" type="button">
-                                <span class="mr-1">CONFIRMED</span>
-                                <span class="badge badge-pill badge-success"></span>
-                            </button>
-                            <button class="btn btn-secondary" @click="getAppointments(appointmentStatus.CANCELLED)" type="button">
-                                <span class="mr-1">CANCELLED</span>
-                                <span class="badge badge-pill badge-danger"></span>
-                            </button>
-                            <!-- <button @click="getAppointments()" type="button" class="btn"
+                            <button @click="getAppointments()" type="button" class="btn btn-sm"
                                 :class="[typeof selectedStatus === 'undefined' ? 'btn-secondary' : 'btn-default']">
                                 <span class="mr-1">All</span>
                                 <span class="badge badge-pill badge-info">{{ appointmentsCount }}</span>
                             </button>
 
                             <button v-for="status in appointmentStatus" @click="getAppointments(status.value)" type="button"
-                                class="btn" :class="[selectedStatus === status.value ? 'btn-secondary' : 'btn-default']">
+                                class="btn btn-sm" :class="[selectedStatus === status.value ? 'btn-secondary' : 'btn-default']">
                                 <span class="mr-1">{{ status.name }}</span>
                                 <span class="badge badge-pill" :class="`badge-${status.color}`">{{ status.count }}</span>
-                            </button> -->
+                            </button>
                         </div>
                     </div>
                     <div class="card">
