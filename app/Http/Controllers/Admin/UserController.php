@@ -9,7 +9,7 @@ use App\Models\User;
 class UserController extends Controller
 {
     public function index(){
-        $user = User::latest()->paginate(5);
+        $user = User::latest()->paginate();
         return $user;
     }
 

@@ -76,12 +76,15 @@
         axios.put('/api/users/'+ formValues.value.id, values)
         .then((response) => {
             // const index = users.value.findIndex(user => user.id == response.data.id);
-            const index = users.value.findIndex(user => user.id === response.data.id);
+            const index = users.value.data.findIndex(user => user.id === response.data.id);
             users.value[index] = response.data;
             $('#createUserModal').modal('hide');
             toastr.success('User updated successfully!');
         }).catch((error) => {
-            setErrors(error.response.data.errors);
+            if (error.response) {
+                setErrors(error.response.data.errors);
+            }
+            // setErrors(error.response.data.errors);
             console.log(error);
         })
     };
