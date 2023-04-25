@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -23,6 +23,7 @@ class AppointmentController extends Controller
                 'end_time'   => $appoinment->end_time->format('Y-m-d h:i A'),
                 'client'     => $appoinment->client,
                 'status' => [
+                    'value' => $appoinment->status->value,
                     'name' => $appoinment->status->name,
                     'color' => $appoinment->status->color(),
                 ],
@@ -51,6 +52,14 @@ class AppointmentController extends Controller
         ]);
 
         return response()->json(['message' => 'success']);
+    }
+
+    public function changeStatus(Appointment $appointment){
+        $appointment->update([
+            'status' => request('status'),
+        ]);
+
+        return response()->json(['success' => true]);
     }
 
     public function edit(Appointment $appointment)

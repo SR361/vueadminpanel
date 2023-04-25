@@ -3,6 +3,8 @@
     import { useToastr } from '../../toastr.js';
 
     const toastr = useToastr();
+    const getToken = localStorage.getItem("token");
+    const getAuthorizationHeader = () => 'Bearer '+getToken;
 
     const props = defineProps({
         user: Object,
@@ -28,9 +30,15 @@
     ])
 
      const changeRole = (user, role) => {
-        axios.patch('/api/users/'+user.id+'/change-role', {
-            role : role,
-        })
+        axios.patch(
+            '/api/v1/users/'+user.id+'/change-role',
+            {
+                role : role
+            },
+            {
+                headers: { "Authorization" : getAuthorizationHeader() },
+            }
+        )
         .then(() => {
             toastr.success('Role change successfully!');
         })

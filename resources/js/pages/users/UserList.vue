@@ -9,12 +9,18 @@
     import { Bootstrap4Pagination } from 'laravel-vue-pagination';
     import UserListItem from './UserListItem.vue';
 
+    import Header from '../layout/Header.vue';
+    import Sidebar from '../layout/Sidebar.vue';
+    import Footer from '../layout/Footer.vue';
+
     const toastr = useToastr();
     const users = ref({'data' : []});
     const editing = ref(false);
     const formValues = ref();
     const form = ref(null);
-    // const userIdBeingDeleted = ref(null);
+
+    const getToken = localStorage.getItem("token");
+    const getAuthorizationHeader = () => 'Bearer '+getToken;
 
     const createUserSchema = yup.object({
         name : yup.string().required(),
@@ -30,11 +36,17 @@
     });
 
     const getUsers = (page = 1) => {
-        axios.get(`/api/users?page=${page}`, {
-            params: {
-                query: searchQuery.value
+        axios.get(
+            `/api/v1/users?page=${page}`,
+            {
+                headers: { "Authorization" : getAuthorizationHeader() }
+            },
+            {
+                params: {
+                    query: searchQuery.value
+                }
             }
-        })
+        )
         .then((response) => {
             users.value = response.data;
             selectedUsers.value = [];
@@ -48,7 +60,12 @@
     }
 
     const createUser = (values,{ resetForm, setErrors }) => {
-        axios.post('/api/users', values)
+        axios.post(
+            '/api/v1/users', values,
+            {
+                headers: { "Authorization" : getAuthorizationHeader() },
+            }
+        )
         .then((response) => {
             users.value.data.unshift(response.data);
             $('#createUserModal').modal('hide');
@@ -56,11 +73,9 @@
             toastr.success('User created successfully!');
         })
         .catch((error) => {
-            // console.log(error);
             if (error.response) {
                 setErrors(error.response.data.errors);
             }
-            // setErrors(error.response.data.errors);
         })
     }
 
@@ -77,9 +92,13 @@
     }
 
     const updateUser = (values,{ setErrors }) => {
-        axios.put('/api/users/'+ formValues.value.id, values)
+        axios.put(
+            '/api/v1/users/'+ formValues.value.id, values,
+            {
+                headers: { "Authorization" : getAuthorizationHeader() },
+            }
+        )
         .then((response) => {
-            // const index = users.value.findIndex(user => user.id == response.data.id);
             const index = users.value.data.findIndex(user => user.id === response.data.id);
             users.value[index] = response.data;
             $('#createUserModal').modal('hide');
@@ -88,7 +107,6 @@
             if (error.response) {
                 setErrors(error.response.data.errors);
             }
-            // setErrors(error.response.data.errors);
             console.log(error);
         })
     };
@@ -120,23 +138,24 @@
     };
 
     const deleteUser = () => {
-        // console.log('deleteuser : '+userIdBeingDeleted.value);
-        // axios.delete(`/api/users/${userIdBeingDeleted.value}`)
-        axios.delete('/api/users/'+userIdBeingDeleted.value)
+        axios.delete(
+            '/api/v1/users/'+userIdBeingDeleted.value,
+            {
+                headers: { "Authorization" : getAuthorizationHeader() },
+            }
+        )
         .then(() => {
             $('#deleteUserModal').modal('hide');
             toastr.success('User deleted successfully!');
             users.value.data = users.value.data.filter(user => user.id !== userIdBeingDeleted.value);
-            // users.value.data = users.value.filter(user => user.id !== userId);
-            // emit('userDeleted',userIdBeingDeleted.value);
         });
     };
 
     const bulkDelete = () => {
-        axios.delete('/api/users', {
-            data: {
-                ids: selectedUsers.value
-            }
+        axios.delete('/api/v1/users',
+        {
+            headers: { "Authorization" : getAuthorizationHeader() },
+            data: { ids: selectedUsers.value }
         })
         .then(response => {
             users.value.data = users.value.data.filter(user => !selectedUsers.value.includes(user.id));
@@ -146,28 +165,9 @@
         });
     };
 
-    // const userDeleted = (userId) => {
-    //     console.log(userId)
-    //     users.value = users.value.filter(user => user.id !== userId);
-    // };
-
     const searchQuery = ref(null);
-
-    // const search = () => {
-    //     axios.get('/api/users/search',{
-    //         params: {
-    //             query: searchQuery.value
-    //         }
-    //     })
-    //     .then(response => {
-    //         users.value = response.data
-    //     })
-    //     .catch(error => {
-    //         console.log(error);
-    //     })
-    // }
-
     const selectAll = ref(false);
+
     const selectAllUsers = () => {
         if (selectAll.value) {
             selectedUsers.value = users.value.data.map(user => user.id);
@@ -186,78 +186,86 @@
     })
 </script>
 <template>
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">Users</h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
-                        <li class="breadcrumb-item active">Users</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="content">
-        <div class="container-fluid">
-            <!-- <div class="d-flex justify-content-between"></div> -->
-            <div class="d-flex justify-content-between">
-                <div class="d-flex">
-                    <button type="button" class="mb-2 btn btn-primary" @click="addUser">
-                        <i class="fa fa-plus-circle mr-1"></i>
-                        Add New User
-                    </button>
-                    <div v-if="selectedUsers.length > 0">
-                        <button @click="bulkDelete" type="button" class="ml-2 mb-2 btn btn-danger">
-                            <i class="fa fa-trash mr-1"></i>
-                            Delete Selected
-                        </button>
-                        <span class="ml-2">Selected {{ selectedUsers.length }} users</span>
+    <div class="wrapper">
+        <Header />
+        <Sidebar />
+
+        <div class="content-wrapper" >
+            <div class="content-header">
+                <div class="container-fluid">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h1 class="m-0">Users</h1>
+                        </div>
+                        <div class="col-sm-6">
+                            <ol class="breadcrumb float-sm-right">
+                                <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+                                <li class="breadcrumb-item active">Users</li>
+                            </ol>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <input type="text" v-model="searchQuery" class="form-control" placeholder="Search..." />
+            </div>
+            <div class="content">
+                <div class="container-fluid">
+                    <!-- <div class="d-flex justify-content-between"></div> -->
+                    <div class="d-flex justify-content-between">
+                        <div class="d-flex">
+                            <button type="button" class="mb-2 btn btn-primary" @click="addUser">
+                                <i class="fa fa-plus-circle mr-1"></i>
+                                Add New User
+                            </button>
+                            <div v-if="selectedUsers.length > 0">
+                                <button @click="bulkDelete" type="button" class="ml-2 mb-2 btn btn-danger">
+                                    <i class="fa fa-trash mr-1"></i>
+                                    Delete Selected
+                                </button>
+                                <span class="ml-2">Selected {{ selectedUsers.length }} users</span>
+                            </div>
+                        </div>
+                        <div>
+                            <input type="text" v-model="searchQuery" class="form-control" placeholder="Search..." />
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" v-model="selectAll" @change="selectAllUsers" /></th>
+                                        <th style="width: 10px">#</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Registered Date</th>
+                                        <th>Role</th>
+                                        <th>Options</th>
+                                    </tr>
+                                </thead>
+                                <tbody v-if="users.data.length > 0">
+                                    <UserListItem
+                                        v-for="(user, index) in users.data"
+                                        :key="user.id"
+                                        :user=user
+                                        :index=index
+                                        @editUser="editUser"
+                                        @confirm-user-deletion="confirmUserDeletion"
+                                        @toggle-selection="toggleSelection"
+                                        :select-all="selectAll"
+                                    />
+                                </tbody>
+                                <tbody v-else>
+                                    <tr>
+                                        <td colspan="7" class="text-center">No result found...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <Bootstrap4Pagination :data="users" @pagination-change-page="getUsers" />
                 </div>
             </div>
-            <div class="card">
-                <div class="card-body">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th><input type="checkbox" v-model="selectAll" @change="selectAllUsers" /></th>
-                                <th style="width: 10px">#</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Registered Date</th>
-                                <th>Role</th>
-                                <th>Options</th>
-                            </tr>
-                        </thead>
-                        <tbody v-if="users.data.length > 0">
-                            <UserListItem
-                                v-for="(user, index) in users.data"
-                                :key="user.id"
-                                :user=user
-                                :index=index
-                                @editUser="editUser"
-                                @confirm-user-deletion="confirmUserDeletion"
-                                @toggle-selection="toggleSelection"
-                                :select-all="selectAll"
-                            />
-                        </tbody>
-                        <tbody v-else>
-                            <tr>
-                                <td colspan="7" class="text-center">No result found...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <Bootstrap4Pagination :data="users" @pagination-change-page="getUsers" />
         </div>
+        <Footer />
     </div>
     <div class="modal fade" id="createUserModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">

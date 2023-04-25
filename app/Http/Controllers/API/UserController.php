@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -15,8 +16,8 @@ class UserController extends Controller
             })
             ->latest()
             ->paginate(5);
-
         return $users;
+
         // $user = User::latest()->paginate();
         // return $user;
     }
@@ -33,7 +34,7 @@ class UserController extends Controller
         return $user = User::create([
             'name' => $request->name,
             'email'=> $request->email,
-            'password'=> bcrypt($request->password)
+            'password'=> Hash::make($request->password)
         ]);
         // return response()->json(['success' => true,'data' => $user]);
         // return $user;
@@ -51,7 +52,7 @@ class UserController extends Controller
         $user->update([
             'name' => $request->name,
             'email'=> $request->email,
-            'password'=> $request->password ? bcrypt($request->password) : $user->password
+            'password'=> $request->password ? Hash::make($request->password) : $user->password
         ]);
         return $user;
     }
