@@ -5,6 +5,8 @@ import AppointmentForm from './pages/appointments/AppointmentForm.vue';
 import UserList from './pages/users/UserList.vue';
 import UpdateSetting from './pages/settings/UpdateSetting.vue';
 import UpdateProfile from './pages/profile/UpdateProfile.vue';
+
+import Categorie from './pages/categories/Categorie.vue';
 import Routes from './routes.js';
 
 export default [
@@ -72,6 +74,14 @@ export default [
             requiresAuth : true
         }
     },
+    {
+        path : '/admin/categories',
+        name : 'admin.categories',
+        component : Categorie,
+        meta : {
+            requiresAuth : true
+        }
+    }
 ]
 
 Router.beforeEach((to,from) => {

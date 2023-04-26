@@ -1,43 +1,42 @@
-
 <script setup>
-//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
     import { ref, onMounted, reactive, watch } from 'vue';
     import { Form, Field} from 'vee-validate';
     import * as yup from 'yup';
     import { useToastr } from '../../toastr.js';
     import { debounce } from 'lodash';
     import { Bootstrap4Pagination } from 'laravel-vue-pagination';
-    import UserListItem from './UserListItem.vue';
+    import CategorieListItem from './CategorieListItem.vue';
 
     import Header from '../layout/Header.vue';
     import Sidebar from '../layout/Sidebar.vue';
     import Footer from '../layout/Footer.vue';
 
     const toastr = useToastr();
-    const users = ref({'data' : []});
+    const categories = ref({'data' : []});
     const editing = ref(false);
     const formValues = ref();
     const form = ref(null);
+    const userIdBeingDeleted = ref(null);
+    const selectAll = ref(false);
+    const selectedCategorie = ref([]);
 
     const getToken = localStorage.getItem("token");
     const getAuthorizationHeader = () => 'Bearer '+getToken;
+    const searchQuery = ref(null);
 
-    const createUserSchema = yup.object({
+    const createCategoriesSchema = yup.object({
         name : yup.string().required(),
-        email : yup.string().email().required(),
-        password : yup.string().required().min(6),
+        slug : yup.string().required(),
     })
-    const editUserSchema = yup.object({
+
+    const editCategoriesSchema = yup.object({
         name: yup.string().required(),
-        email: yup.string().email().required(),
-        password: yup.string().when((password, schema) => {
-            return password ? schema.min(6) : schema;
-        }),
+        slug: yup.string().required(),
     });
 
-    const getUsers = (page = 1) => {
+    const getCategories = (page = 1) => {
         axios.get(
-            `/api/v1/users?page=${page}`,
+            `/api/v1/categories?page=${page}`,
             {
                 headers: { "Authorization" : getAuthorizationHeader() }
             },
@@ -48,29 +47,35 @@
             }
         )
         .then((response) => {
-            users.value = response.data;
-            selectedUsers.value = [];
-            selectAll.value = false;
+            categories.value = response.data;
         })
     }
 
-    const addUser = () => {
+    const addCategories = () => {
         editing.value = false;
-        $('#createUserModal').modal('show');
+        $('#createCategoriesModal').modal('show');
     }
 
-    const createUser = (values,{ resetForm, setErrors }) => {
+    const handleSubmit = (values, actions) => {
+        if(editing.value){
+            updateCategorie(values, actions);
+        }else{
+            createCategories(values, actions);
+        }
+    }
+
+    const createCategories = (values,{ resetForm, setErrors }) => {
         axios.post(
-            '/api/v1/users', values,
+            '/api/v1/categories', values,
             {
                 headers: { "Authorization" : getAuthorizationHeader() },
             }
         )
         .then((response) => {
-            users.value.data.unshift(response.data);
-            $('#createUserModal').modal('hide');
+            categories.value.data.unshift(response.data);
+            $('#createCategoriesModal').modal('hide');
             resetForm();
-            toastr.success('User created successfully!');
+            toastr.success('Categories created successfully!');
         })
         .catch((error) => {
             if (error.response) {
@@ -79,129 +84,111 @@
         })
     }
 
-    const editUser = (user) => {
+    const editCategorie = (categorie) => {
         editing.value = true;
         form.value.resetForm();
         // this.$refs.form.resetForm();
-        $('#createUserModal').modal('show');
+        $('#createCategoriesModal').modal('show');
         formValues.value = {
-            id : user.id,
-            name : user.name,
-            email : user.email
+            id : categorie.id,
+            name : categorie.name,
+            slug : categorie.slug
         }
     }
 
-    const updateUser = (values,{ setErrors }) => {
+    const updateCategorie = (values,{ setErrors }) => {
         axios.put(
-            '/api/v1/users/'+ formValues.value.id, values,
+            '/api/v1/categories/'+ formValues.value.id, values,
             {
                 headers: { "Authorization" : getAuthorizationHeader() },
             }
         )
         .then((response) => {
-            const index = users.value.data.findIndex(user => user.id === response.data.id);
-            users.value[index] = response.data;
-            $('#createUserModal').modal('hide');
-            getUsers();
-            toastr.success('User updated successfully!');
+            const index = categories.value.data.findIndex(categorie => categorie.id === response.data.id);
+            categories.value[index] = response.data;
+            $('#createCategoriesModal').modal('hide');
+            toastr.success('Categorie updated successfully!');
+            getCategories();
         }).catch((error) => {
             if (error.response) {
                 setErrors(error.response.data.errors);
             }
-            console.log(error);
         })
     };
 
-    const handleSubmit = (values, actions) => {
-        if(editing.value){
-            updateUser(values, actions);
-        }else{
-            createUser(values, actions);
-        }
-    }
-
-    const selectedUsers = ref([]);
-    const toggleSelection = (user) => {
-        const index = selectedUsers.value.indexOf(user.id);
-        if (index === -1) {
-            selectedUsers.value.push(user.id);
-        } else {
-            selectedUsers.value.splice(index, 1);
-        }
-        console.log(selectedUsers.value);
-    };
-
-    const userIdBeingDeleted = ref(null);
-
-    const confirmUserDeletion = (id) => {
-        userIdBeingDeleted.value = id;
-        $('#deleteUserModal').modal('show');
-    };
-
-    const deleteUser = () => {
+    const deleteCategorie = () => {
         axios.delete(
-            '/api/v1/users/'+userIdBeingDeleted.value,
+            '/api/v1/categories/'+userIdBeingDeleted.value,
             {
                 headers: { "Authorization" : getAuthorizationHeader() },
             }
         )
         .then(() => {
-            $('#deleteUserModal').modal('hide');
-            toastr.success('User deleted successfully!');
-            users.value.data = users.value.data.filter(user => user.id !== userIdBeingDeleted.value);
+            $('#deleteCategorieModal').modal('hide');
+            toastr.success('Categorie deleted successfully!');
+            categories.value.data = categories.value.data.filter(categorie => categorie.id !== userIdBeingDeleted.value);
         });
     };
 
+    const confirmCategorieDeletion = (id) => {
+        userIdBeingDeleted.value = id;
+        $('#deleteCategorieModal').modal('show');
+    };
+
+    const selectAllCategorie = () => {
+        if (selectAll.value) {
+            selectedCategorie.value = categories.value.data.map(categorie => categorie.id);
+        } else {
+            selectedCategorie.value = [];
+        }
+    }
+
+    const toggleSelection = (categorie) => {
+        const index = selectedCategorie.value.indexOf(categorie.id);
+        if (index === -1) {
+            selectedCategorie.value.push(categorie.id);
+        } else {
+            selectedCategorie.value.splice(index, 1);
+        }
+    };
+
     const bulkDelete = () => {
-        axios.delete('/api/v1/users',
+        axios.delete('/api/v1/categories',
         {
             headers: { "Authorization" : getAuthorizationHeader() },
-            data: { ids: selectedUsers.value }
+            data: { ids: selectedCategorie.value }
         })
         .then(response => {
-            users.value.data = users.value.data.filter(user => !selectedUsers.value.includes(user.id));
-            selectedUsers.value = [];
+            categories.value.data = categories.value.data.filter(categorie => !selectedCategorie.value.includes(categorie.id));
+            selectedCategorie.value = [];
             selectAll.value = false;
             toastr.success(response.data.message);
         });
     };
 
-    const searchQuery = ref(null);
-    const selectAll = ref(false);
-
-    const selectAllUsers = () => {
-        if (selectAll.value) {
-            selectedUsers.value = users.value.data.map(user => user.id);
-        } else {
-            selectedUsers.value = [];
-        }
-        console.log(selectedUsers.value);
-    }
-
     watch(searchQuery, debounce(() => {
-        getUsers();
+        getCategories();
     }, 300));
 
     onMounted(() => {
-        getUsers();
+        getCategories();
     })
 </script>
 <template>
     <div class="wrapper">
         <Header />
         <Sidebar />
-
         <div class="content-wrapper" >
             <div class="content-header">
                 <div class="container-fluid">
                     <div class="row mb-2">
                         <div class="col-sm-6">
-                            <h1 class="m-0">Users</h1>
+                            <h1 class="m-0">Categories</h1>
                         </div>
                         <div class="col-sm-6">
                             <ol class="breadcrumb float-sm-right">
                                 <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
-                                <li class="breadcrumb-item active">Users</li>
+                                <li class="breadcrumb-item active">Categorie</li>
                             </ol>
                         </div>
                     </div>
@@ -212,16 +199,16 @@
                     <!-- <div class="d-flex justify-content-between"></div> -->
                     <div class="d-flex justify-content-between">
                         <div class="d-flex">
-                            <button type="button" class="mb-2 btn btn-primary" @click="addUser">
+                            <button type="button" class="mb-2 btn btn-primary" @click="addCategories">
                                 <i class="fa fa-plus-circle mr-1"></i>
-                                Add New User
+                                Add New Categorie
                             </button>
-                            <div v-if="selectedUsers.length > 0">
+                            <div v-if="selectedCategorie.length > 0">
                                 <button @click="bulkDelete" type="button" class="ml-2 mb-2 btn btn-danger">
                                     <i class="fa fa-trash mr-1"></i>
                                     Delete Selected
                                 </button>
-                                <span class="ml-2">Selected {{ selectedUsers.length }} users</span>
+                                <span class="ml-2">Selected {{ selectedCategorie.length }} users</span>
                             </div>
                         </div>
                         <div>
@@ -233,23 +220,21 @@
                             <table class="table table-bordered">
                                 <thead>
                                     <tr>
-                                        <th><input type="checkbox" v-model="selectAll" @change="selectAllUsers" /></th>
+                                        <th><input type="checkbox" v-model="selectAll" @change="selectAllCategorie" /></th>
                                         <th style="width: 10px">#</th>
                                         <th>Name</th>
-                                        <th>Email</th>
-                                        <th>Registered Date</th>
-                                        <th>Role</th>
+                                        <th>slug</th>
                                         <th>Options</th>
                                     </tr>
                                 </thead>
-                                <tbody v-if="users.data.length > 0">
-                                    <UserListItem
-                                        v-for="(user, index) in users.data"
-                                        :key="user.id"
-                                        :user=user
+                                <tbody v-if="categories.data.length > 0">
+                                    <CategorieListItem
+                                        v-for="(categorie, index) in categories.data"
+                                        :key="categorie.id"
+                                        :categorie=categorie
                                         :index=index
-                                        @editUser="editUser"
-                                        @confirm-user-deletion="confirmUserDeletion"
+                                        @editCategorie="editCategorie"
+                                        @confirm-categorie-deletion="confirmCategorieDeletion"
                                         @toggle-selection="toggleSelection"
                                         :select-all="selectAll"
                                     />
@@ -262,41 +247,36 @@
                             </table>
                         </div>
                     </div>
-                    <Bootstrap4Pagination :data="users" @pagination-change-page="getUsers" />
+                    <Bootstrap4Pagination :data="categories" @pagination-change-page="getCategories" />
                 </div>
             </div>
         </div>
         <Footer />
     </div>
-    <div class="modal fade" id="createUserModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal fade" id="createCategoriesModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">
-                        <span v-if="editing">Edit User</span>
-                        <span v-else>Add User</span>
+                        <span v-if="editing">Edit Categories</span>
+                        <span v-else>Add Categories</span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <Form ref="form" @submit="handleSubmit" :validation-schema="editing ? editUserSchema : createUserSchema" v-slot="{ errors }" :initial-values="formValues">
+                <Form ref="form" @submit="handleSubmit" :validation-schema="editing ? editCategoriesSchema : createCategoriesSchema" v-slot="{ errors }" :initial-values="formValues">
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="name">Name</label>
-                            <Field name="name" type="text" :class="{ 'is-invalid':errors.name }" class="form-control " id="name" aria-describedby="nameHelp" placeholder="Enter full name" />
+                            <Field name="name" type="text" :class="{ 'is-invalid':errors.name }" class="form-control " id="name" aria-describedby="nameHelp" placeholder="Enter categories name" />
                             <span class="invalid-feedback">{{ errors.name }}</span>
                         </div>
 
                         <div class="form-group">
-                            <label for="email">Email</label>
-                            <Field name="email" :class="{ 'is-invalid':errors.email }" type="email" class="form-control " id="email" aria-describedby="nameHelp" placeholder="Enter full name" />
-                            <span class="invalid-feedback">{{ errors.email }}</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Password</label>
-                            <Field name="password" :class="{ 'is-invalid' : errors.password }" type="password" class="form-control " id="password" aria-describedby="nameHelp" placeholder="Enter password" />
-                            <span class="invalid-feedback">{{ errors.password }}</span>
+                            <label for="slug">Slug</label>
+                            <Field name="slug" :class="{ 'is-invalid':errors.slug }" type="text" class="form-control " id="slug" aria-describedby="nameHelp" placeholder="Enter slug name" />
+                            <span class="invalid-feedback">{{ errors.slug }}</span>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -307,24 +287,24 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="deleteUserModal" data-backdrop="static" tabindex="-1" role="dialog"
+    <div class="modal fade" id="deleteCategorieModal" data-backdrop="static" tabindex="-1" role="dialog"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">
-                        <span>Delete User</span>
+                        <span>Delete Categorie</span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <h5>Are you sure you want to delete this user ?</h5>
+                    <h5>Are you sure you want to delete this categorie ?</h5>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button @click.prevent="deleteUser" type="button" class="btn btn-primary">Delete User</button>
+                    <button @click.prevent="deleteCategorie" type="button" class="btn btn-primary">Delete Categorie</button>
                 </div>
             </div>
         </div>

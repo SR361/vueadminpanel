@@ -7,6 +7,7 @@ use App\Http\Controllers\API\AppointmentController;
 use App\Http\Controllers\API\AppointmentStatusController;
 use App\Http\Controllers\API\ClientController;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\CategorieController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +23,12 @@ Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(fu
     Route::post('/login', [AuthController::class, 'login']);
 
     Route::middleware(['accessToken'])->group(function () {
+        Route::get('/categories', [CategorieController::class, 'index']);
+        Route::post('/categories', [CategorieController::class, 'store']);
+        Route::put('/categories/{categorie}', [CategorieController::class, 'update']);
+        Route::delete('/categories/{categorie}', [CategorieController::class, 'destory']);
+        Route::delete('/categories', [CategorieController::class, 'bulkDelete']);
+
         Route::get('/users', [UserController::class, 'index']);
         Route::post('/users', [UserController::class, 'store']);
         Route::patch('/users/{user}/change-role', [UserController::class, 'changeRole']);

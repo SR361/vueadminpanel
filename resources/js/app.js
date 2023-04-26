@@ -14,6 +14,8 @@ import UserList from './pages/users/UserList.vue';
 import UpdateSetting from './pages/settings/UpdateSetting.vue';
 import UpdateProfile from './pages/profile/UpdateProfile.vue';
 
+import Categorie from './pages/categories/Categorie.vue';
+
 const routes = [
     {
         path : '/login',
@@ -79,6 +81,14 @@ const routes = [
             requiresAuth : true
         }
     },
+    {
+        path : '/admin/categories',
+        name : 'admin.categories',
+        component : Categorie,
+        meta : {
+            requiresAuth : true
+        }
+    }
 ];
 
 const router = createRouter({
