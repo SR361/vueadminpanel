@@ -13,7 +13,6 @@
 
     const getToken = localStorage.getItem("token");
     const getAuthorizationHeader = () => 'Bearer '+getToken;
-    console.log(getToken);
 
     const toastr = useToastr();
     const router = useRouter();

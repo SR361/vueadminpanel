@@ -1,8 +1,6 @@
 <script setup>
     import { ref } from 'vue';
-    import { useToastr } from '../../toastr.js';
 
-    const toastr = useToastr();
     const getToken = localStorage.getItem("token");
     const getAuthorizationHeader = () => 'Bearer '+getToken;
 
@@ -37,6 +35,9 @@
             <a href="#" @click.prevent="$emit('confirmCategorieDeletion',categorie.id)">
                 <i class="fa fa-trash text-danger ml-2"></i>
             </a>
+            <router-link :to="`/admin/categories/${categorie.slug}/list`">
+                <i class="fa fa-eye ml-2"></i>
+            </router-link>
         </td>
     </tr>
 

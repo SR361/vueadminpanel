@@ -49,7 +49,7 @@
                         </router-link>
                     </li>
                     <li class="nav-item">
-                        <router-link to="/admin/categories" active-class="active" class="nav-link">
+                        <router-link to="/admin/categories" :class="$route.path.startsWith('/admin/categories') ? 'active' : ''" class="nav-link">
                             <i class="nav-icon fas fa-list-alt"></i>
                             <p>
                                 Categories

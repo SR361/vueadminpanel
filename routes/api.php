@@ -29,6 +29,12 @@ Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(fu
         Route::delete('/categories/{categorie}', [CategorieController::class, 'destory']);
         Route::delete('/categories', [CategorieController::class, 'bulkDelete']);
 
+        Route::get('/child-categorie/{slug}/list', [CategorieController::class, 'childCategorie']);
+        Route::get('/parent-categorie/{slug}/list', [CategorieController::class, 'parentCategorie']);
+        Route::post('/child-categories', [CategorieController::class, 'Childstore']);
+        Route::put('/child-categories/{categorie}', [CategorieController::class, 'Childupdate']);
+        Route::delete('/child-categories/{categorie}', [CategorieController::class, 'childDestory']);
+
         Route::get('/users', [UserController::class, 'index']);
         Route::post('/users', [UserController::class, 'store']);
         Route::patch('/users/{user}/change-role', [UserController::class, 'changeRole']);

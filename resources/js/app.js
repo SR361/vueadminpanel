@@ -14,6 +14,7 @@ import UserList from './pages/users/UserList.vue';
 import UpdateSetting from './pages/settings/UpdateSetting.vue';
 import UpdateProfile from './pages/profile/UpdateProfile.vue';
 
+import ChildCategorieList from './pages/categories/ChildCategorie/ChildCategorieList.vue';
 import Categorie from './pages/categories/Categorie.vue';
 
 const routes = [
@@ -85,6 +86,14 @@ const routes = [
         path : '/admin/categories',
         name : 'admin.categories',
         component : Categorie,
+        meta : {
+            requiresAuth : true
+        }
+    },
+    {
+        path: '/admin/categories/:slug/list',
+        name: 'admin.categories.list',
+        component: ChildCategorieList,
         meta : {
             requiresAuth : true
         }

@@ -58,4 +58,49 @@ class CategorieController extends Controller
 
         return response()->json(['message' => 'Categorie deleted successfully!']);
     }
+
+    public function childCategorie($slug){
+        $child_cat = Categorie::where('slug',$slug)->first();
+        $grand_child_cat = Categorie::where('parent_id',$child_cat->id)
+                                ->latest()
+                                ->paginate(10);
+        return $grand_child_cat;
+    }
+
+    public function parentCategorie($slug){
+        $child_cat = Categorie::where('slug',$slug)->first();
+        return $child_cat;
+    }
+
+    public function Childstore(Request $request){
+        request()->validate([
+            'name' => 'required',
+            'slug' => 'required',
+        ]);
+        return $categorie = Categorie::create([
+            'name' => $request->name,
+            'slug'=> $request->slug,
+            'parent_id' => $request->parent_id,
+            'type' => '',
+            'image' => '',
+        ]);
+    }
+
+    public function Childupdate(Request $request,Categorie $categorie){
+        request()->validate([
+            'name' => 'required',
+            'slug' => 'required',
+        ]);
+        $categorie->update([
+            'name' => $request->name,
+            'slug'=> $request->slug,
+        ]);
+        return $categorie;
+    }
+
+    public function childDestory(Categorie $categorie){
+        $categorie->delete();
+
+        return response()->noContent();
+    }
 }
