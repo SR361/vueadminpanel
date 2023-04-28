@@ -8,6 +8,7 @@ use App\Http\Controllers\API\AppointmentStatusController;
 use App\Http\Controllers\API\ClientController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CategorieController;
+use App\Http\Controllers\API\ProductController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +29,8 @@ Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(fu
         Route::put('/categories/{categorie}', [CategorieController::class, 'update']);
         Route::delete('/categories/{categorie}', [CategorieController::class, 'destory']);
         Route::delete('/categories', [CategorieController::class, 'bulkDelete']);
+        Route::get('/parent-categories-list', [CategorieController::class, 'parentCategorieList']);
+        Route::post('/child-categories-list', [CategorieController::class, 'childCategorieList']);
 
         Route::get('/child-categorie/{slug}/list', [CategorieController::class, 'childCategorie']);
         Route::get('/parent-categorie/{slug}/list', [CategorieController::class, 'parentCategorie']);
@@ -51,5 +54,8 @@ Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(fu
         Route::get('/appointments/{appointment}/edit', [AppointmentController::class, 'edit']);
         Route::put('/appointments/{appointment}/edit', [AppointmentController::class, 'update']);
         Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']);
+
+        Route::post('/product/create', [ProductController::class, 'store']);
+        Route::post('product/gallery_image/upload', [ProductController::class, 'gallery_image_upload']);
     });
 });

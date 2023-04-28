@@ -7,6 +7,8 @@ import UpdateSetting from './pages/settings/UpdateSetting.vue';
 import UpdateProfile from './pages/profile/UpdateProfile.vue';
 
 import Categorie from './pages/categories/Categorie.vue';
+
+import Products from './pages/product/ProductList.vue';
 import Routes from './routes.js';
 
 export default [
@@ -78,6 +80,14 @@ export default [
         path : '/admin/categories',
         name : 'admin.categories',
         component : Categorie,
+        meta : {
+            requiresAuth : true
+        }
+    },
+    {
+        path : '/admin/product',
+        name : 'admin.product',
+        component : Products,
         meta : {
             requiresAuth : true
         }

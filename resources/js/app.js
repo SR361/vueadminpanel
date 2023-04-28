@@ -15,6 +15,8 @@ import UpdateSetting from './pages/settings/UpdateSetting.vue';
 import UpdateProfile from './pages/profile/UpdateProfile.vue';
 
 import ChildCategorieList from './pages/categories/ChildCategorie/ChildCategorieList.vue';
+import Products from './pages/product/ProductList.vue';
+import ProductCreate from './pages/product/ProductCreate.vue';
 import Categorie from './pages/categories/Categorie.vue';
 
 const routes = [
@@ -94,6 +96,22 @@ const routes = [
         path: '/admin/categories/:slug/list',
         name: 'admin.categories.list',
         component: ChildCategorieList,
+        meta : {
+            requiresAuth : true
+        }
+    },
+    {
+        path : '/admin/product',
+        name : 'admin.product',
+        component : Products,
+        meta : {
+            requiresAuth : true
+        }
+    },
+    {
+        path : '/admin/product/create',
+        name : 'admin.product.create',
+        component : ProductCreate,
         meta : {
             requiresAuth : true
         }

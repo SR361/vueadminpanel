@@ -1,10 +1,10 @@
 <script setup>
     import { ref, onMounted, reactive, watch } from 'vue';
-    import { Form, Field} from 'vee-validate';
+    import { Form, Field, useResetForm } from 'vee-validate';
     import * as yup from 'yup';
     import { useToastr } from '../../../toastr.js';
     // import { debounce } from 'lodash';
-    // import { Bootstrap4Pagination } from 'laravel-vue-pagination';
+    import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 
     import Header from '../../layout/Header.vue';
     import Sidebar from '../../layout/Sidebar.vue';
@@ -14,11 +14,11 @@
 
     const toastr = useToastr();
     const childCategories = ref({'data' : []});
-    const parentCategories = ref({'data' : []});
-    const editing = ref(false)
+    const parentCategories = ref();
+    const editing = ref(false);
     const formValues = ref();
     const form = ref(null);
-    const catIdBeingDeleted = ref(null);
+
     const formfield = reactive({
         parent_id: '',
     });
@@ -42,13 +42,14 @@
 
     const addChildCategories = () => {
         editing.value = false;
-        const formValues = ref(null);
+        $('#name').val('');
+        $('#slug').val('');
         $('#createChildCategoriesModal').modal('show');
     }
 
-    const getChildCategories = () => {
+    const getChildCategories = (page = 1) => {
         axios.get(
-            `/api/v1/child-categorie/${route.params.slug}/list`,
+            `/api/v1/child-categorie/${route.params.slug}/list?page=${page}`,
             {
                 headers: { "Authorization" : getAuthorizationHeader() }
             },
@@ -67,6 +68,7 @@
         )
         .then(({data}) => {
             formfield.parent_id = data.id;
+            parentCategories.value = data;
         })
     }
 
@@ -88,7 +90,6 @@
         .then((response) => {
             childCategories.value.data.unshift(response.data);
             $('#createChildCategoriesModal').modal('hide');
-            resetForm();
             toastr.success('Chhild categories created successfully!');
         })
         .catch((error) => {
@@ -100,7 +101,7 @@
 
     const editCategorie = (childCategorie) => {
         editing.value = true;
-        form.value.resetForm();
+        // form.value.resetForm();
         $('#createChildCategoriesModal').modal('show');
         formValues.value = {
             id : childCategorie.id,
@@ -129,6 +130,13 @@
         })
     };
 
+    const catIdBeingDeleted = ref(null);
+
+    const confirmCategorieDeletion = (id) => {
+        catIdBeingDeleted.value = id;
+        $('#deleteCategorieModal').modal('show');
+    };
+
     const deleteCategorie = () => {
         axios.delete(
             '/api/v1/child-categories/'+catIdBeingDeleted.value,
@@ -138,15 +146,12 @@
         )
         .then(() => {
             $('#deleteCategorieModal').modal('hide');
-            toastr.success('Categorie deleted successfully!');
-            categories.value.data = categories.value.data.filter(categorie => categorie.id !== catIdBeingDeleted.value);
+            toastr.success('Child Categorie deleted successfully!');
+            childCategories.value.data = childCategories.value.data.filter(childCategorie => childCategorie.id !== catIdBeingDeleted.value);
         });
     };
 
-    const confirmCategorieDeletion = (id) => {
-        catIdBeingDeleted.value = id;
-        $('#deleteCategorieModal').modal('show');
-    };
+
 
     onMounted(() => {
         getChildCategories();
@@ -214,6 +219,7 @@
                                     </table>
                                 </div>
                             </div>
+                            <Bootstrap4Pagination :data="childCategories" @pagination-change-page="getChildCategories" />
                         </div>
                     </div>
                 </div>
@@ -233,20 +239,20 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <Form ref="form" @submit="handleSubmit" :validation-schema="editing ? editCategoriesSchema : createCategoriesSchema" v-slot="{ errors }" :initial-values="formValues">
+                <Form id="child-categorie-form" ref="form" @submit="handleSubmit" :validation-schema="editing ? editCategoriesSchema : createCategoriesSchema" v-slot="{ errors }" :initial-values="formValues">
                     <div v-if="!editing">
                         <Field v-model="formfield.parent_id"  name="parent_id" type="hidden" id="parent_id" />
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="name">Name</label>
-                            <Field name="name" type="text" :class="{ 'is-invalid':errors.name }" class="form-control " id="name" aria-describedby="nameHelp" placeholder="Enter categories name" />
+                            <Field name="name" type="text" :class="{ 'is-invalid':errors.name }" class="form-control " id="name" placeholder="Enter categories name" />
                             <span class="invalid-feedback">{{ errors.name }}</span>
                         </div>
 
                         <div class="form-group">
                             <label for="slug">Slug</label>
-                            <Field name="slug" :class="{ 'is-invalid':errors.slug }" type="text" class="form-control " id="slug" aria-describedby="nameHelp" placeholder="Enter slug name" />
+                            <Field name="slug" type="text" :class="{ 'is-invalid':errors.slug }" class="form-control " id="slug" placeholder="Enter slug name" />
                             <span class="invalid-feedback">{{ errors.slug }}</span>
                         </div>
                     </div>

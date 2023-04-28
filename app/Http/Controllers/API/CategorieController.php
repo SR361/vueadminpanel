@@ -63,7 +63,7 @@ class CategorieController extends Controller
         $child_cat = Categorie::where('slug',$slug)->first();
         $grand_child_cat = Categorie::where('parent_id',$child_cat->id)
                                 ->latest()
-                                ->paginate(10);
+                                ->paginate(5);
         return $grand_child_cat;
     }
 
@@ -102,5 +102,15 @@ class CategorieController extends Controller
         $categorie->delete();
 
         return response()->noContent();
+    }
+
+    public function parentCategorieList(){
+        $categorie = Categorie::where('parent_id',0)->get();
+        return $categorie;
+    }
+
+    public function childCategorieList(Request $request){
+        $child_cat = Categorie::where('parent_id',$request->id)->get();
+        return $child_cat;
     }
 }
