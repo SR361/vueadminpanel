@@ -115,6 +115,14 @@ const routes = [
         meta : {
             requiresAuth : true
         }
+    },
+    {
+        path : '/admin/product/:id/edit',
+        name : 'admin.product.edit',
+        component : ProductCreate,
+        meta : {
+            requiresAuth : true
+        }
     }
 ];
 

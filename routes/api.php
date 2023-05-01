@@ -55,7 +55,11 @@ Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(fu
         Route::put('/appointments/{appointment}/edit', [AppointmentController::class, 'update']);
         Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']);
 
+        Route::get('/products', [ProductController::class, 'index']);
         Route::post('/product/create', [ProductController::class, 'store']);
-        Route::post('product/gallery_image/upload', [ProductController::class, 'gallery_image_upload']);
+        Route::get('/product/{product}/edit', [ProductController::class, 'edit']);
+        Route::post('/product/{product}/edit', [ProductController::class, 'update']);
+        Route::get('/product-gallery-image', [ProductController::class, 'productGalleryImage']);
+        Route::delete('/galleryimagedelete/{productgalleryimage}', [ProductController::class, 'galleryImageDelete']);
     });
 });

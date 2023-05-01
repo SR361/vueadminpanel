@@ -2,16 +2,18 @@
     import Header from '../layout/Header.vue';
     import Sidebar from '../layout/Sidebar.vue';
     import Footer from '../layout/Footer.vue';
-    import { reactive, onMounted, ref } from 'vue';
+    import { reactive, onMounted, ref, watch } from 'vue';
     import { useRouter,useRoute } from 'vue-router';
     import { Form } from 'vee-validate';
     import { useToastr } from '@/toastr';
+    import { debounce } from 'lodash';
 
     const toastr = useToastr();
     const parentCategories = ref();
     const childCategories = ref();
     const router = useRouter();
     const route = useRoute();
+    const editMode = ref(false);
     const getToken = localStorage.getItem("token");
     const getAuthorizationHeader = () => 'Bearer '+getToken;
     const form = reactive({
@@ -38,8 +40,13 @@
     };
 
     const getChildCategorie = ($event) => {
+        let id = event.target.value;
+        childCategorie(id);
+    }
+
+    const childCategorie = (id) => {
         axios.post(
-            '/api/v1/child-categories-list/',{id: event.target.value},
+            '/api/v1/child-categories-list/',{id: id},
             {
                 headers: { "Authorization" : getAuthorizationHeader() },
 
@@ -51,7 +58,11 @@
     }
 
     const handleSubmit = (values,actions) => {
-        createProduct(values, actions);
+        if(editMode.value){
+            updateProduct(values, actions);
+        }else{
+            createProduct(values, actions);
+        }
     };
 
     const mainImageFile = ($event) => {
@@ -82,8 +93,52 @@
         })
     }
 
+    const updateProduct = (values, actions) => {
+        axios.post(
+            `/api/v1/product/${route.params.id}/edit`, form,
+            {
+                headers: { 'content-type': 'multipart/form-data',"Authorization" : getAuthorizationHeader() },
+            }
+        )
+        .then((response) => {
+            router.push('/admin/product');
+            toastr.success('Product updated successfully!');
+        })
+        .catch((error) => {
+            actions.setErrors(error.response.data.errors);
+        })
+    }
+
+    const getProduct = () => {
+        axios.get(
+            `/api/v1/product/${route.params.id}/edit`,
+            {
+                headers: { "Authorization" : getAuthorizationHeader() },
+            }
+        )
+        .then(({data}) => {
+            form.name = data.name;
+            form.qty = data.qty;
+            form.price = data.price;
+            form.description = data.description;
+            form.parent_categorie_id = data.cid;
+            form.child_categorie_id = data.sid;
+            form.product_image = data.image;
+            form.product_gallery_image = data.productimages;
+        })
+    };
+
+
     onMounted(() => {
         getParentCategorie();
+        if (route.name === 'admin.product.edit') {
+            editMode.value = true;
+            getProduct();
+            watch(debounce(() => {
+                let sid = $('#categorie').val();
+                childCategorie(sid);
+            }, 3000));
+        }
     });
 </script>
 <template>
@@ -116,7 +171,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="card">
-                                <Form @submit="handleSubmit" v-slot:default="{ errors }">
+                                <Form @submit="handleSubmit"  v-slot:default="{ errors }">
                                     <div class="card-header">
                                         <h4>Product Details Form</h4>
                                     </div>
@@ -156,10 +211,9 @@
                                                             <div class="col-md-12">
                                                                 <div class="form-group">
                                                                     <label>Categorie</label>
-                                                                    <select v-model="form.parent_categorie_id" :class="{ 'is-invalid': errors.parent_categorie_id }" class="form-control" @change="getChildCategorie($event)">
+                                                                    <select v-model="form.parent_categorie_id" :class="{ 'is-invalid': errors.parent_categorie_id }" class="form-control" id="categorie" @change="getChildCategorie($event)">
                                                                         <option value="">Select Categorie</option>
                                                                         <option v-for='parentCategorie in parentCategories' :value='parentCategorie.id' :key="parentCategorie.id">{{ parentCategorie.name }}</option>
-                                                                        <!-- <option v-for="parentCategorie in parentCategories" :value="parentCategorie.id" :key="parentCategorie.id">{{ parentCategorie.name}}</option> -->
                                                                     </select>
                                                                     <span class="invalid-feedback">{{ errors.parent_categorie_id }}</span>
                                                                 </div>
@@ -208,7 +262,11 @@
                                                                 @change="mainImageFile($event)"
                                                                 :class="{ 'is-invalid': errors.product_image }"
                                                             >
-                                                            <div id="product_main_img_prev" class="row mt-3"></div>
+
+                                                            <div id="product_main_img_prev" v-if="editMode" class="row mt-3">
+                                                                <img :src="form.product_image" alt="" class="product_image">
+                                                            </div>
+                                                            <div id="product_main_img_prev" v-else class="row mt-3"></div>
                                                             <span class="invalid-feedback">{{ errors.product_image }}</span>
                                                         </div>
                                                     </div>
@@ -248,6 +306,7 @@
         </div>
         <Footer />
     </div>
+
 </template>
 <script>
 export default {
@@ -275,7 +334,6 @@ export default {
             $('#product_gallery_img_prev').html('');
             let input = this.$refs.galleryImageInput
             let file = input.files
-            console.log(file);
             for (let index = 0; index < file.length; index++) {
                 if (file && file[index]) {
                     let reader = new FileReader
@@ -285,7 +343,6 @@ export default {
                     reader.readAsDataURL(file[index])
                     this.$emit('input', file[index])
                 }
-
             }
         }
     }

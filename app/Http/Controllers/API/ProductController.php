@@ -12,6 +12,14 @@ class ProductController extends Controller
 {
     use CustomFileUpload;
 
+    public function index(){
+        return Product::
+                with('category','childcategory','productimages')
+                ->latest()
+                ->paginate(5);
+        // return $product;
+    }
+
     public function store(){
         $validated = request()->validate([
             'name' => 'required',
@@ -28,10 +36,9 @@ class ProductController extends Controller
         ]);
 
         $product_image = request()->file('product_image');
-        // dd($product_image[0]);
         $imagename = $this->uploadFile(
             $product_image[0],
-            'public/uploads/product'
+            'uploads/product'
         );
 
         $product = Product::create([
@@ -48,7 +55,7 @@ class ProductController extends Controller
         foreach(request()->file('product_gallery_image') as $image){
             $galleryimagename = $this->uploadFile(
                 $image,
-                'public/uploads/productgallery'
+                'uploads/productgallery'
             );
 
             ProductGalleryImages::create([
@@ -60,19 +67,77 @@ class ProductController extends Controller
         return response()->json(['message' => 'success']);
     }
 
-    public function gallery_image_upload(Request $request){
-        $path = storage_path('app/public/tmp/uploads');
+    public function edit(Product $product)
+    {
+        $products = Product::where('id',$product->id)->with('productimages')->first();
+        return $products;
+    }
 
-        if (!file_exists($path)) {
-            mkdir($path, 0777, true);
+    public function update(Product $product)
+    {
+        $validated = request()->validate([
+            'name' => 'required',
+            'qty' => 'required',
+            'price' => 'required',
+            'description' => 'required',
+            'parent_categorie_id' => 'required',
+            'child_categorie_id' => 'required',
+        ], [
+            'parent_categorie_id.required' => 'The categorie field is required.',
+            'child_categorie_id.required' => 'The sub-categorie field is required.',
+        ]);
+        if(request()->file('product_image')){
+            $this->deleteFile(
+                $product->getRawOriginal('image'),
+                'uploads/product/'
+            );
+
+            $product_image = request()->file('product_image');
+            $imagename = $this->uploadFile(
+                $product_image[0],
+                'uploads/product'
+            );
+            $validated['image'] = $imagename;
         }
 
-        $file = $request->file('image');
+        if(request()->file('product_gallery_image')){
+            foreach(request()->file('product_gallery_image') as $image){
+                $galleryimagename = $this->uploadFile(
+                    $image,
+                    'uploads/productgallery'
+                );
 
-        $name = uniqid() . '_' . trim($file->getClientOriginalName());
+                ProductGalleryImages::create([
+                    'pid'   => $product->id,
+                    'image' => $galleryimagename
+                ]);
+            }
+        }
 
-        $file->move($path, $name);
+        $product->update($validated);
 
-        return ['name' => $name];
+        return response()->json(['success' => true]);
     }
+
+    public function productGalleryImage(Request $request){
+        $galleryimage = ProductGalleryImages::where('pid',$request->id)->get();
+        if(count($galleryimage) > 0){
+            $output = array('status' => true, 'message' => 'Product gallery image found.', 'data' => $galleryimage);
+        }else{
+            $output = array('status' => false, 'message' => 'This product gallery image not found!');
+        }
+
+        return response()->json($output);
+    }
+
+    public function galleryImageDelete(ProductGalleryImages $productgalleryimage){
+        $this->deleteFile(
+            $productgalleryimage->getRawOriginal('image'),
+            'uploads/productgallery/'
+        );
+        $productgalleryimage->delete();
+        return response()->noContent();
+    }
+
+
 }
