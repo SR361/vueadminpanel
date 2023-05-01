@@ -139,5 +139,24 @@ class ProductController extends Controller
         return response()->noContent();
     }
 
+    public function destroy(Product $product)
+    {
+        if($product->getRawOriginal('image')){
+            $this->deleteFile(
+                $product->getRawOriginal('image'),
+                'uploads/product/'
+            );
+        }
+        $productgallery = ProductGalleryImages::where('pid',$product->id)->get();
+        foreach($productgallery as $pg){
+            $this->deleteFile(
+                $pg->getRawOriginal('image'),
+                'uploads/productgallery/'
+            );
+        }
+        $product->delete();
+        return response()->json(['success' => true], 200);
+    }
+
 
 }

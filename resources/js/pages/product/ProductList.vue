@@ -8,6 +8,7 @@
     import axios from 'axios';
     import { useToastr } from '@/toastr';
     import { debounce } from 'lodash';
+    import Swal from 'sweetalert2';
 
     const toastr = useToastr();
     const products = ref({'data' : []});
@@ -63,6 +64,35 @@
                 $('#galleryimage'+imageIdBeingDeleted.value).remove();
             }, 2000));
         });
+    }
+
+    const deleteProduct = (id) => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios.delete(
+                    `/api/v1/product/${id}`,
+                    {
+                        headers: { "Authorization" : getAuthorizationHeader() }
+                    }
+                )
+                .then((response) => {
+                    products.value.data = products.value.data.filter(product => product.id !== id);
+                    Swal.fire(
+                        'Deleted!',
+                        'Your file has been deleted.',
+                        'success'
+                    )
+                });
+            }
+        })
     }
 
     onMounted(() => {
@@ -132,9 +162,9 @@
                                                     <router-link :to="`/admin/product/${product.id}/edit`">
                                                         <i class="fa fa-edit mr-2"></i>
                                                     </router-link>
-                                                    <a href="">
+                                                    <span @click.prevent="deleteProduct(product.id)">
                                                         <i class="fa fa-trash text-danger mr-2"></i>
-                                                    </a>
+                                                    </span>
                                                     <span @click.prevent="productImage(product.id)" style="cursor: pointer;">
                                                         <i class="fas fa-images"></i>
                                                     </span>

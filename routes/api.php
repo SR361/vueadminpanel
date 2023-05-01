@@ -61,5 +61,6 @@ Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(fu
         Route::post('/product/{product}/edit', [ProductController::class, 'update']);
         Route::get('/product-gallery-image', [ProductController::class, 'productGalleryImage']);
         Route::delete('/galleryimagedelete/{productgalleryimage}', [ProductController::class, 'galleryImageDelete']);
+        Route::delete('/product/{product}', [ProductController::class, 'destroy']);
     });
 });
