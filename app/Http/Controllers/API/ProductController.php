@@ -158,5 +158,12 @@ class ProductController extends Controller
         return response()->json(['success' => true], 200);
     }
 
+    public function bulkDelete()
+    {
+        ProductGalleryImages::whereIn('id', request('ids'))->delete();
+
+        return response()->json(['message' => 'Product gallery image deleted successfully!']);
+    }
+
 
 }

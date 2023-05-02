@@ -15,6 +15,8 @@
     const getToken = localStorage.getItem("token");
     const getAuthorizationHeader = () => 'Bearer '+getToken;
     const productgallery = ref(null);
+    const selectAll = ref(false);
+    const selectedImages = ref([]);
 
     const getProducts = (page = 1) => {
         axios.get(
@@ -46,24 +48,55 @@
     }
 
     const imageIdBeingDeleted = ref(null);
-    const confirmDeleteImage = (id) => {
+    // const confirmDeleteImage = (id) => {
+    //     imageIdBeingDeleted.value = id;
+    //     $('#deleteImageModal').modal('show');
+    // };
+    const deleteImage = (id) => {
         imageIdBeingDeleted.value = id;
-        $('#deleteImageModal').modal('show');
-    };
-    const deleteImage = () => {
-        axios.delete(
-            '/api/v1/galleryimagedelete/'+imageIdBeingDeleted.value,
-            {
-                headers: { "Authorization" : getAuthorizationHeader() }
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios.delete(
+                    '/api/v1/galleryimagedelete/'+imageIdBeingDeleted.value,
+                    {
+                        headers: { "Authorization" : getAuthorizationHeader() }
+                    }
+                )
+                .then((response) => {
+                    // products.value.data = products.value.data.filter(product => product.id !== id);
+
+                    Swal.fire(
+                        'Deleted!',
+                        'Your product image has been deleted.',
+                        'success'
+                    )
+                    watch(debounce(() => {
+                        productgallery.value = productgallery.value.filter(proimg => proimg.id !== imageIdBeingDeleted.value);
+                    }, 2000));
+                });
             }
-        )
-        .then((response) => {
-            $('#deleteImageModal').modal('hide');
-            toastr.success('Image delete successfully!');
-            watch(debounce(() => {
-                $('#galleryimage'+imageIdBeingDeleted.value).remove();
-            }, 2000));
-        });
+        })
+        // axios.delete(
+        //     '/api/v1/galleryimagedelete/'+imageIdBeingDeleted.value,
+        //     {
+        //         headers: { "Authorization" : getAuthorizationHeader() }
+        //     }
+        // )
+        // .then((response) => {
+        //     $('#deleteImageModal').modal('hide');
+        //     toastr.success('Image delete successfully!');
+        //     watch(debounce(() => {
+        //         productgallery.value = productgallery.value.filter(proimg => proimg.id !== imageIdBeingDeleted.value);
+        //     }, 2000));
+        // });
     }
 
     const deleteProduct = (id) => {
@@ -87,13 +120,46 @@
                     products.value.data = products.value.data.filter(product => product.id !== id);
                     Swal.fire(
                         'Deleted!',
-                        'Your file has been deleted.',
+                        'Your product has been deleted.',
                         'success'
                     )
                 });
             }
         })
     }
+
+    const selectAllImages = () => {
+        if (selectAll.value) {
+            selectedImages.value = productgallery.value.map(proimg => proimg.id);
+        } else {
+            selectedImages.value = [];
+        }
+    }
+
+    const bulkDelete = () => {
+        axios.delete('/api/v1/product',
+        {
+            headers: { "Authorization" : getAuthorizationHeader() },
+            data: { ids: selectedImages.value }
+        })
+        .then(response => {
+            productgallery.value = productgallery.value.filter(proimg => !selectedImages.value.includes(proimg.id));
+            selectedImages.value = [];
+            selectAll.value = false;
+            toastr.success(response.data.message);
+        });
+    };
+
+    const toggleSelection = (proimg) => {
+        const index = selectedImages.value.indexOf(proimg.id);
+        if (index === -1) {
+            selectedImages.value.push(proimg.id);
+        } else {
+            selectedImages.value.splice(index, 1);
+        }
+        console.log(selectedImages.value);
+    };
+
 
     onMounted(() => {
         getProducts();
@@ -196,19 +262,38 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-3" v-for="proimg in productgallery" :key="proimg.id" :id="`galleryimage${proimg.id}`">
-                            <div class="card w-100">
-                                <img class="card-img-top" :src="proimg.image" style="height: 106px;">
-                                <div class="card-body p-0">
-                                    <button @click.prevent="confirmDeleteImage(proimg.id)" class="btn btn-danger btn-sm w-100">Delete</button>
-                                </div>
-                            </div>
+                        <div class="col-md-12">
+                            <table class="table table-bordered table-responsive" style="width: 100%;">
+                                <thead>
+                                    <th style="width: 1%;"><input type="checkbox" v-model="selectAll" @change="selectAllImages" /></th>
+                                    <th style="width: 4%;">#</th>
+                                    <th style="width: 94%;">Image</th>
+                                    <th style="width: 1%;">Option</th>
+                                </thead>
+                                <tbody v-if="productgallery && productgallery.length > 0">
+                                    <tr v-for="(proimg,index) in productgallery" :key="proimg.id">
+                                        <td><input type="checkbox" :checked="selectAll" @change="toggleSelection(proimg)" /></td>
+                                        <td>{{ index + 1 }}</td>
+                                        <td><img class="img-lg" :src="proimg.image" alt="" srcset=""></td>
+                                        <td>
+                                            <a href="#" @click.prevent="deleteImage(proimg.id)">
+                                                <i class="fa fa-trash text-danger ml-2"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tbody v-else>
+                                    <td colspan="4" class="text-center">No result found...</td>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button @click.prevent="deleteUser" type="button" class="btn btn-primary">Delete User</button>
+                    <div v-if="selectedImages.length > 0">
+                        <button @click="bulkDelete" type="button" class="btn btn-primary">Delete Image</button>
+                    </div>
                 </div>
             </div>
         </div>

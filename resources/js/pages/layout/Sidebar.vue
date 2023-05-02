@@ -57,8 +57,7 @@
                         </router-link>
                     </li>
                     <li class="nav-item">
-                        <router-link to="/admin/product" active-class="active" class="nav-link">
-                            <!-- <i class="nav-icon fab fa-project-diagram"></i> -->
+                        <router-link to="/admin/product" :class="$route.path.startsWith('/admin/product') ? 'active' : ''" class="nav-link">
                             <i class="nav-icon fab fa-product-hunt"></i>
                             <p>
                                 Product
