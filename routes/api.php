@@ -9,6 +9,7 @@ use App\Http\Controllers\API\ClientController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CategorieController;
 use App\Http\Controllers\API\ProductController;
+use App\Http\Controllers\API\SettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,5 +64,9 @@ Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(fu
         Route::delete('/galleryimagedelete/{productgalleryimage}', [ProductController::class, 'galleryImageDelete']);
         Route::delete('/product/{product}', [ProductController::class, 'destroy']);
         Route::delete('/product', [ProductController::class, 'bulkDelete']);
+
+        Route::post('/setting/generalsetting', [SettingController::class, 'generalSettingSave']);
+        Route::get('/setting/getsetting', [SettingController::class, 'getSetting']);
+        Route::get('/setting/resetsetting', [SettingController::class, 'resetSetting']);
     });
 });

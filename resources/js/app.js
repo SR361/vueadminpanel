@@ -142,8 +142,6 @@ router.beforeEach((to,from) => {
 
 const app = createApp({});
 
-
-
 export default router;
 
 app.use(router);

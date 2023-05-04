@@ -1,5 +1,37 @@
 <script setup>
+    import { onMounted } from 'vue';
+    onMounted(() => {
+        let setting = JSON.parse(localStorage.getItem("setting"));
 
+        if(setting.theme == 'dark-mode'){
+            $("body:not([class*='dark-mode'])").addClass(setting.theme);
+        }else{
+            $("body").remove('dark-mode');
+        }
+        $("body").addClass(setting.accent_color_variants);
+        $("body").addClass(setting.footer);
+        $(".main-header").addClass(setting.navbar_variants);
+        $(".main-sidebar").addClass(setting.dark_sidebar_variants);
+        $(".brand-link").addClass('bg-'+setting.brand_logo_variants);
+        var headersetting = setting.header_setting;
+
+        if(headersetting != null){
+            for (let index = 0; index < headersetting.length; index++) {
+                if(headersetting[index] == 'layout-navbar-fixed'){
+                    $("body").addClass(headersetting[index]);
+                }else{
+                    $(".main-header").addClass(headersetting[index]);
+                }
+            }
+        }
+
+        var sidebarsetting = setting.sidebar_option;
+        if(sidebarsetting != null){
+            for (let index = 0; index < sidebarsetting.length; index++) {
+                $("body").addClass(sidebarsetting[index]);
+            }
+        }
+    });
 </script>
 <style>
     body{
@@ -20,26 +52,7 @@
             </li>
         </ul>
         <ul class="navbar-nav ml-auto">
-            <li class="nav-item">
-                <a class="nav-link" data-widget="navbar-search" href="#" role="button">
-                    <i class="fas fa-search"></i>
-                </a>
-                <div class="navbar-search-block">
-                    <form class="form-inline">
-                        <div class="input-group input-group-sm">
-                            <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
-                            <div class="input-group-append">
-                                <button class="btn btn-navbar" type="submit">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                                <button class="btn btn-navbar" type="button" data-widget="navbar-search">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </li>
+
             <li class="nav-item dropdown">
                 <a class="nav-link" data-toggle="dropdown" href="#">
                     <i class="far fa-comments"></i>
@@ -116,16 +129,6 @@
                     <div class="dropdown-divider"></div>
                     <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
                 </div>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" data-widget="fullscreen" href="#" role="button">
-                    <i class="fas fa-expand-arrows-alt"></i>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
-                    <i class="fas fa-th-large"></i>
-                </a>
             </li>
         </ul>
     </nav>
