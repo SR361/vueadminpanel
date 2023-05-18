@@ -75,7 +75,6 @@
 
             generalSettingForm.sitelogo = response.data.site_logo;
             generalSettingForm.theme = response.data.theme;
-
             generalSettingForm.oldsitelogo = response.data.oldsitelogo;
             generalSettingForm.sidebar_variants = response.data.sidebar_variants;
             generalSettingForm.navbar_variants = response.data.navbar_variants;
@@ -482,6 +481,7 @@ export default {
                 reader.onload = e => {
                     // this.previewImage = e.target.result
                     $('#site_logo_image').append('<img class="img-fluid col-md-4" src="'+e.target.result+'">')
+                    $('.brand-image').attr('src',e.target.result);
                 }
                 reader.readAsDataURL(file[0])
                 this.$emit('input', file[0])

@@ -45,6 +45,9 @@ Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(fu
         Route::put('/users/{user}', [UserController::class, 'update']);
         Route::delete('/users/{user}', [UserController::class, 'destory']);
         Route::delete('/users', [UserController::class, 'bulkDelete']);
+        Route::post('/updateprofile', [UserController::class, 'updateProfile']);
+        Route::get('/getuserprofile', [UserController::class, 'getUserProfile']);
+        Route::post('/changepassword', [UserController::class, 'changePassword']);
 
         Route::get('/clients', [ClientController::class, 'index']);
 

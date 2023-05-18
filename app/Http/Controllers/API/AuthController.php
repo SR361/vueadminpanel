@@ -45,9 +45,14 @@ class AuthController extends Controller
                 if(Auth::attempt(['email' => request('email'), 'password' => request('password')])){
                     $user = Auth::user();
                     $success['token'] =  $user->createToken('MyApp')->accessToken;
+
+                    $token = md5(uniqid());
+                    User::where('id', Auth::id())->update([ 'token' => $token ]);
+
                     $data = array(
-                        'user'  => $user,
-                        'token' => $success['token']
+                        'user'          => $user,
+                        'token'         => $success['token'],
+                        'access_token'  => $token
                     );
                     $output = array('status' => 200, 'message'=>'Login successfully!','data' => $data);
 

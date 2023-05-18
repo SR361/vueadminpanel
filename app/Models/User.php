@@ -10,6 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use App\Enums\RoleType;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use File;
 
 class User extends Authenticatable
 {
@@ -24,8 +25,16 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'designation',
+        'education',
+        'location',
+        'skills',
+        'profile_photo',
         'password',
-        'role'
+        'role',
+        'token',
+        'connection_id',
+        'user_status',
     ];
 
     /**
@@ -61,5 +70,19 @@ class User extends Authenticatable
         return Attribute::make(
             get: fn ($value) => RoleType::from($value)->name,
         );
+    }
+
+    public function getProfilePhotoAttribute($value)
+    {
+        // dd(public_path());
+        if(!isset($value)){
+            return asset('default.png');
+        }else{
+            if (File::exists(public_path('/uploads/profile_photo/'.$value))) {
+                return asset('uploads/profile_photo/'.$value);
+            }else{
+                return asset('default.png');
+            }
+        }
     }
 }

@@ -1,10 +1,107 @@
-
 <script setup>
     import Header from '../layout/Header.vue';
     import Sidebar from '../layout/Sidebar.vue';
     import Footer from '../layout/Footer.vue';
 
+    import { ref, onMounted,reactive } from 'vue';
+    import { useToastr } from '../../toastr.js';
+    import { Form, Field } from 'vee-validate';
+    import * as yup from 'yup';
 
+    const toastr = useToastr();
+    const formValues = ref({
+        name : '',
+        designation : '',
+        education : '',
+        location : '',
+        skills : '',
+    });
+    const config = {
+        headers: {
+            'content-type': 'multipart/form-data',
+            "Authorization" : 'Bearer '+localStorage.getItem("token")
+        }
+    };
+    const form = ref(null);
+
+    const profileDetails = yup.object({
+        name : yup.string().required(),
+        email : yup.string().email().required(),
+    })
+
+    const changepasswordschema = yup.object({
+        password : yup.string().required('Password is required').min(6),
+        password_confirmation : yup.string().required('Confirm password is required').min(6),
+    })
+
+    const changePasswordFormSubmit = (values,{resetForm, setErrors}) => {
+        axios.post('/api/v1/changepassword', values, config)
+        .then(function (response) {
+            if (response.status === 200) {
+                toastr.success('Password change successfully!');
+                $('#password').val('');
+                $('#confirmpassword').val('');
+            }
+        })
+        .catch((error) => {
+            if (error.response) {
+                setErrors(error.response.data.errors);
+            }
+        })
+    }
+
+    const changepasswordsubmit = (values,actions) => {
+        changePasswordFormSubmit(values,actions);
+    }
+
+    const formSubmit = (values,{ setErrors }) => {
+        const config = {
+            headers: {
+                'content-type': 'multipart/form-data',
+                "Authorization" : 'Bearer '+localStorage.getItem("token")
+            }
+        }
+        axios.post('/api/v1/updateprofile', values, config)
+        .then(function (response) {
+            // console.log(response.data);
+            let user = JSON.stringify(response.data);
+            localStorage.setItem("user",user);
+            $('.admin_name').text(response.data.name);
+            $('.admin_profile_photo').attr('src',response.data.profile_photo);
+            toastr.success('Profile details update successfully!');
+        })
+        .catch((error) => {
+            if (error.response) {
+                setErrors(error.response.data.errors);
+            }
+        })
+    }
+
+    const handleSubmit = (values, actions) => {
+        formSubmit(values, actions);
+    }
+
+    const getUserProfile = () => {
+        axios.get('/api/v1/getuserprofile',config)
+        .then(response=>{
+            formValues.value = {
+                name : response.data.name,
+                email : response.data.email,
+                designation : response.data.designation,
+                education : response.data.education,
+                location : response.data.location,
+                skills : response.data.skills,
+            }
+        }).catch(error=>{
+            console.log(error)
+        })
+    }
+
+    onMounted(() => {
+        let user = JSON.parse(localStorage.getItem("user"));
+        $('.profile-user-img').attr('src',user.profile_photo);
+        getUserProfile();
+    })
 </script>
 <template>
     <div class="wrapper">
@@ -35,8 +132,8 @@
                                     <div class="text-center">
                                         <img class="profile-user-img img-fluid img-circle" src="https://adminlte.io/themes/v3/dist/img/user4-128x128.jpg" alt="User profile picture">
                                     </div>
-                                    <h3 class="profile-username text-center">Nina Mcintire</h3>
-                                    <p class="text-muted text-center">Software Engineer</p>
+                                    <h3 class="profile-username text-center">{{ formValues.name }}</h3>
+                                    <p class="text-muted text-center">{{ formValues.designation }}</p>
                                     <ul class="list-group list-group-unbordered mb-3">
                                         <li class="list-group-item">
                                             <b>Followers</b> <a class="float-right">1,322</a>
@@ -59,23 +156,16 @@
                                 <div class="card-body">
                                     <strong><i class="fas fa-book mr-1"></i> Education</strong>
                                     <p class="text-muted">
-                                        B.S. in Computer Science from the University of Tennessee at Knoxville
+                                        {{ formValues.education }}
                                     </p>
                                     <hr>
                                     <strong><i class="fas fa-map-marker-alt mr-1"></i> Location</strong>
-                                    <p class="text-muted">Malibu, California</p>
+                                    <p class="text-muted">{{ formValues.location }}</p>
                                     <hr>
                                     <strong><i class="fas fa-pencil-alt mr-1"></i> Skills</strong>
                                     <p class="text-muted">
-                                        <span class="tag tag-danger">UI Design</span>
-                                        <span class="tag tag-success">Coding</span>
-                                        <span class="tag tag-info">Javascript</span>
-                                        <span class="tag tag-warning">PHP</span>
-                                        <span class="tag tag-primary">Node.js</span>
+                                        {{ formValues.skills }}
                                     </p>
-                                    <hr>
-                                    <strong><i class="far fa-file-alt mr-1"></i> Notes</strong>
-                                    <p class="text-muted">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam fermentum enim neque.</p>
                                 </div>
 
                             </div>
@@ -85,7 +175,7 @@
                                 <div class="card-header p-2">
                                     <ul class="nav nav-pills">
                                         <li class="nav-item"><a class="nav-link active" href="#settings" data-toggle="tab">Settings</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#activity" data-toggle="tab">Activity</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#changepassword" data-toggle="tab">Change Password</a></li>
                                     </ul>
                                 </div>
                                 <div class="card-body">
@@ -185,42 +275,56 @@
                                             </div>
                                         </div>
                                         <div class="tab-pane active" id="settings">
-                                            <form class="form-horizontal">
+                                            <Form ref="form" @submit="handleSubmit" :validation-schema="profileDetails" class="form-horizontal" v-slot="{ errors }" :initial-values="formValues">
                                                 <div class="form-group row">
                                                     <label for="inputName" class="col-sm-2 col-form-label">Name</label>
                                                     <div class="col-sm-10">
-                                                        <input type="email" class="form-control" id="inputName" placeholder="Name">
+                                                        <Field name="name" v-model="formValues.name" :class="{ 'is-invalid':errors.name }" id="name" type="text" class="form-control" placeholder="Name"  />
                                                     </div>
                                                 </div>
                                                 <div class="form-group row">
                                                     <label for="inputEmail" class="col-sm-2 col-form-label">Email</label>
                                                     <div class="col-sm-10">
-                                                        <input type="email" class="form-control" id="inputEmail" placeholder="Email">
+                                                        <Field name="email" :class="{ 'is-invalid':errors.email }" id="email" type="email" class="form-control" placeholder="Email"  />
+                                                        <span class="invalid-feedback">{{ errors.email }}</span>
                                                     </div>
                                                 </div>
                                                 <div class="form-group row">
-                                                    <label for="inputName2" class="col-sm-2 col-form-label">Name</label>
+                                                    <label for="inputName2" class="col-sm-2 col-form-label">Designation</label>
                                                     <div class="col-sm-10">
-                                                        <input type="text" class="form-control" id="inputName2" placeholder="Name">
+                                                        <Field name="designation" v-model="formValues.designation" :class="{ 'is-invalid':errors.designation }" type="text" class="form-control" placeholder="Name"  />
+                                                        <span class="invalid-feedback">{{ errors.email }}</span>
                                                     </div>
                                                 </div>
                                                 <div class="form-group row">
-                                                    <label for="inputExperience" class="col-sm-2 col-form-label">Experience</label>
-                                                    <div class="col-sm-10"><grammarly-extension data-grammarly-shadow-root="true" class="dnXmp" style="position: absolute; top: 0px; left: 0px; pointer-events: none;"></grammarly-extension><grammarly-extension data-grammarly-shadow-root="true" class="dnXmp" style="position: absolute; top: 0px; left: 0px; pointer-events: none;"></grammarly-extension>
-                                                        <textarea class="form-control" id="inputExperience" placeholder="Experience" spellcheck="false"></textarea>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group row">
-                                                    <label for="inputSkills" class="col-sm-2 col-form-label">Skills</label>
+                                                    <label for="inputExperience" class="col-sm-2 col-form-label">Education</label>
                                                     <div class="col-sm-10">
-                                                        <input type="text" class="form-control" id="inputSkills" placeholder="Skills">
+                                                        <Field as="textarea" name="education" v-model="formValues.education" :class="{ 'is-invalid':errors.education }" class="form-control" placeholder="Education" />
+                                                        <span class="invalid-feedback">{{ errors.education }}</span>
+                                                        <!-- <Field v-slot="{ field }" name="education">
+                                                            <textarea v-bind="field" class="form-control" />
+                                                        </Field> -->
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <label for="inputSkills"  class="col-sm-2 col-form-label">Skills</label>
+                                                    <div class="col-sm-10">
+                                                        <Field name="skills" v-model="formValues.skills" :class="{ 'is-invalid':errors.skills }" type="text" class="form-control" placeholder="Skills" />
+                                                        <span class="invalid-feedback">{{ errors.skills }}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <label for="inputSkills"  class="col-sm-2 col-form-label">Location</label>
+                                                    <div class="col-sm-10">
+                                                        <Field name="location" v-model="formValues.location" :class="{ 'is-invalid':errors.location }" type="text" class="form-control" placeholder="Location" />
+                                                        <span class="invalid-feedback">{{ errors.location }}</span>
                                                     </div>
                                                 </div>
                                                 <div class="form-group row">
                                                     <label for="exampleInputFile" class="col-sm-2">File input</label>
                                                     <div class="input-group col-sm-10">
                                                         <div class="custom-file">
-                                                            <input type="file" class="custom-file-input" id="exampleInputFile">
+                                                            <Field name="profile_photo" v-on:change="onChange" type="file" class="custom-file-input" />
                                                             <label class="custom-file-label" for="exampleInputFile">Choose file</label>
                                                         </div>
                                                     </div>
@@ -230,7 +334,36 @@
                                                         <button type="submit" class="btn btn-success">Submit</button>
                                                     </div>
                                                 </div>
-                                            </form>
+                                            </Form>
+                                        </div>
+                                        <div class="tab-pane" id="changepassword">
+                                            <Form ref="form" @submit="changepasswordsubmit" :validation-schema="changepasswordschema" v-slot="{ errors }" :initial-values="changePasswordFormValues" class="form-horizontal">
+                                                <div class="form-group row">
+                                                    <label  class="col-sm-3">New Password Pasword</label>
+                                                    <div class="input-group col-sm-9">
+                                                        <div class="custom-file">
+                                                            <!-- <input v-validate="'required'" name="password" type="password" :class="{'is-danger': errors.has('password')}" placeholder="Password" ref="password"> -->
+                                                            <Field id="password" name="password"  :class="{ 'is-invalid':errors.password }" class="form-control" type="password" placeholder="Enter Password" />
+                                                            <span class="invalid-feedback ml-3">{{ errors.password }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <label  class="col-sm-3">Confirm Pasword</label>
+                                                    <div class="input-group col-sm-9">
+                                                        <div class="custom-file">
+                                                            <!-- <input v-validate="'required|confirmed:password'" name="password_confirmation" type="password" :class="{'is-danger': errors.has('password_confirmation')}" placeholder="Password, Again" data-vv-as="password"> -->
+                                                            <Field id="confirmpassword" name="password_confirmation" :class="{ 'is-invalid':errors.password_confirmation }" class="form-control" type="password" placeholder="Enter Confirm Password" />
+                                                            <span class="invalid-feedback ml-3">{{ errors.password_confirmation }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row ">
+                                                    <div class="col-sm-12 d-flex justify-content-end">
+                                                        <button type="submit" class="btn btn-success">Change Password</button>
+                                                    </div>
+                                                </div>
+                                            </Form>
                                         </div>
                                     </div>
                                 </div>
@@ -243,3 +376,25 @@
         <Footer />
     </div>
 </template>
+<script>
+    export default {
+        data() {
+            return {
+                name: '',
+                file: '',
+                success: ''
+            };
+        },
+        methods: {
+            onChange(e) {
+                this.file = e.target.files[0];
+
+                let reader = new FileReader
+                reader.onload = e => {
+                    $('.profile-user-img').attr('src',e.target.result);
+                }
+                reader.readAsDataURL(e.target.files[0])
+            },
+        }
+    }
+</script>

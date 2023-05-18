@@ -13,6 +13,7 @@ import AppointmentForm from './pages/appointments/AppointmentForm.vue';
 import UserList from './pages/users/UserList.vue';
 import UpdateSetting from './pages/settings/UpdateSetting.vue';
 import UpdateProfile from './pages/profile/UpdateProfile.vue';
+import Chat from './pages/chat/Chat.vue';
 
 import ChildCategorieList from './pages/categories/ChildCategorie/ChildCategorieList.vue';
 import Products from './pages/product/ProductList.vue';
@@ -120,6 +121,14 @@ const routes = [
         path : '/admin/product/:id/edit',
         name : 'admin.product.edit',
         component : ProductCreate,
+        meta : {
+            requiresAuth : true
+        }
+    },
+    {
+        path : '/admin/chat',
+        name : 'admin.chat',
+        component : Chat,
         meta : {
             requiresAuth : true
         }

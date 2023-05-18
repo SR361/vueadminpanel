@@ -2,33 +2,41 @@
     import { onMounted } from 'vue';
     onMounted(() => {
         let setting = JSON.parse(localStorage.getItem("setting"));
+        let user = JSON.parse(localStorage.getItem("user"));
 
-        if(setting.theme == 'dark-mode'){
-            $("body:not([class*='dark-mode'])").addClass(setting.theme);
-        }else{
-            $("body").remove('dark-mode');
+        if(user != null){
+            $('.admin_profile_photo').attr('src',user.profile_photo);
+            $('.admin_name').text(user.name);
         }
-        $("body").addClass(setting.accent_color_variants);
-        $("body").addClass(setting.footer);
-        $(".main-header").addClass(setting.navbar_variants);
-        $(".main-sidebar").addClass(setting.dark_sidebar_variants);
-        $(".brand-link").addClass('bg-'+setting.brand_logo_variants);
-        var headersetting = setting.header_setting;
+        if(setting != null){
+            if(setting.theme == 'dark-mode'){
+                $("body:not([class*='dark-mode'])").addClass(setting.theme);
+            }else{
+                $("body").remove('dark-mode');
+            }
+            $(".brand-image").attr('src',setting.site_logo);
+            $("body").addClass(setting.accent_color_variants);
+            $("body").addClass(setting.footer);
+            $(".main-header").addClass(setting.navbar_variants);
+            $(".main-sidebar").addClass(setting.dark_sidebar_variants);
+            $(".brand-link").addClass('bg-'+setting.brand_logo_variants);
+            var headersetting = setting.header_setting;
 
-        if(headersetting != null){
-            for (let index = 0; index < headersetting.length; index++) {
-                if(headersetting[index] == 'layout-navbar-fixed'){
-                    $("body").addClass(headersetting[index]);
-                }else{
-                    $(".main-header").addClass(headersetting[index]);
+            if(headersetting != null){
+                for (let index = 0; index < headersetting.length; index++) {
+                    if(headersetting[index] == 'layout-navbar-fixed'){
+                        $("body").addClass(headersetting[index]);
+                    }else{
+                        $(".main-header").addClass(headersetting[index]);
+                    }
                 }
             }
-        }
 
-        var sidebarsetting = setting.sidebar_option;
-        if(sidebarsetting != null){
-            for (let index = 0; index < sidebarsetting.length; index++) {
-                $("body").addClass(sidebarsetting[index]);
+            var sidebarsetting = setting.sidebar_option;
+            if(sidebarsetting != null){
+                for (let index = 0; index < sidebarsetting.length; index++) {
+                    $("body").addClass(sidebarsetting[index]);
+                }
             }
         }
     });

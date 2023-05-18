@@ -4,11 +4,14 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use App\Traits\CustomFileUpload;
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class UserController extends Controller
 {
+    use CustomFileUpload;
     public function index(){
         $users = User::query()
             ->when(request('query'), function ($query, $searchQuery) {
@@ -78,5 +81,56 @@ class UserController extends Controller
         $user->delete();
 
         return response()->noContent();
+    }
+
+    public function updateProfile(Request $request){
+        // dd($request->file());
+        request()->validate([
+            'email' => 'required|unique:users,email,' . Auth::guard('api')->id(),
+        ]);
+
+        $user = User::find(Auth::guard('api')->id());
+        $updatedata= array(
+            'name'          => $request->name,
+            'email'         => $request->email,
+            'designation'   => $request->designation,
+            'education'     => $request->education,
+            'location'      => $request->location,
+            'skills'        => $request->skills,
+        );
+        if($request->file('profile_photo')){
+            $profile_photo = request()->file('profile_photo');
+
+            $this->deleteFile(
+                $user->getRawOriginal('profile_photo'),
+                'uploads/profile_photo/'
+            );
+
+            $imagename = $this->uploadFile(
+                $profile_photo,
+                'uploads/profile_photo'
+            );
+            $updatedata['profile_photo'] = $imagename;
+        }
+        $user->update($updatedata);
+        return $user;
+    }
+
+    public function getUserProfile(){
+        return User::find(Auth::guard('api')->id());
+    }
+
+    public function changePassword(Request $request){
+
+        $validated = request()->validate([
+            'password'               => 'required|confirmed|min:6',
+            'password_confirmation'     => 'required|min:6'
+        ]);
+
+        $user = Auth::guard('api')->user();
+        $user->password = Hash::make($request->password);
+        $user->save();
+        $output = array('status' => 200, 'message'=>'Password Updated successfully.');
+        return response()->json($output, 200);
     }
 }

@@ -9,17 +9,17 @@
 </script>
 <template>
     <aside class="main-sidebar elevation-4">
-        <a href="index3.html" class="brand-link">
-            <img src="https://adminlte.io/themes/v3/dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-            <span class="brand-text font-weight-light">AdminLTE 3</span>
+        <a href="#" class="brand-link d-flex justify-content-center">
+            <img src="https://adminlte.io/themes/v3/dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image elevation-3" style="opacity: .8">
+            <!-- <span class="brand-text font-weight-light">AdminLTE 3</span> -->
         </a>
         <div class="sidebar">
             <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                 <div class="image">
-                    <img src="https://adminlte.io/themes/v3/dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                    <img src="https://adminlte.io/themes/v3/dist/img/user2-160x160.jpg" class="img-circle elevation-2 admin_profile_photo" alt="User Image">
                 </div>
                 <div class="info">
-                    <a href="#" class="d-block">Alexander Pierce</a>
+                    <a href="#" class="d-block admin_name">Alexander Pierce</a>
                 </div>
             </div>
             <nav class="mt-2">
@@ -77,6 +77,14 @@
                             <i class="nav-icon fas fa-users"></i>
                             <p>
                                 Profile
+                            </p>
+                        </router-link>
+                    </li>
+                    <li class="nav-item">
+                        <router-link to="/admin/chat" active-class="active" class="nav-link">
+                            <i class="nav-icon fas fa-comments"></i>
+                            <p>
+                                Chat
                             </p>
                         </router-link>
                     </li>
