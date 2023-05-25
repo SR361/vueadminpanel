@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Traits\CustomFileUpload;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\Company;
 
 class UserController extends Controller
 {
@@ -26,27 +27,21 @@ class UserController extends Controller
     }
 
     public function store(Request $request){
-        // $request->validate([
-        //     'email' => 'required|unique:users,email'
-        // ]);
         request()->validate([
             'name' => 'required',
             'email' => 'required|unique:users,email',
             'password' => 'required|min:6',
         ]);
+        $token = md5(uniqid());
         return $user = User::create([
             'name' => $request->name,
             'email'=> $request->email,
-            'password'=> Hash::make($request->password)
+            'password'=> Hash::make($request->password),
+            'token' => $token
         ]);
-        // return response()->json(['success' => true,'data' => $user]);
-        // return $user;
     }
 
     public function update(Request $request,User $user){
-        // $request->validate([
-        //     'email' => 'required|unique:users,email,'.$user->id,
-        // ]);
         request()->validate([
             'name' => 'required',
             'email' => 'required|unique:users,email,' . $user->id,
@@ -132,5 +127,53 @@ class UserController extends Controller
         $user->save();
         $output = array('status' => 200, 'message'=>'Password Updated successfully.');
         return response()->json($output, 200);
+    }
+
+    public function createCompany(Request $request){
+        $validated = request()->validate([
+            'companyname'     => 'required',
+            'companyphone'    => 'required',
+            'companywebsite'  => 'required',
+        ],
+        [
+            'companyname.required' => 'The company name field is required.',
+            'companyphone.required' => 'The company phone field is required.',
+            'companywebsite.required' => 'The company website field is required.',
+        ]);
+        if(is_null(Auth::guard('api')->user()->company_id)){
+            $validated = request()->validate([
+                'companyemail'     => 'required|email|unique:companies,company_email',
+            ],[
+                'companyemail.required' => 'The company email field is required.',
+            ]);
+        }else{
+            $validated = request()->validate([
+                'companyemail'    => 'required|unique:companies,company_email,'.Auth::guard('api')->user()->company_id,
+            ],[
+                'companyemail.required' => 'The company email field is required.',
+            ]);
+        }
+        $data = array(
+            'company_name'      => $request->companyname,
+            'company_email'     => $request->companyemail,
+            'company_phone'     => $request->companyphone,
+            'website'   => $request->companywebsite,
+            'rounded_theme'     => 0
+        );
+        if(is_null(Auth::guard('api')->user()->company_id)){
+            $company = Company::create($data);
+            $userdata = array(
+                'company_id' => $company->id
+            );
+            User::where('id',Auth::guard('api')->id())->update($userdata);
+        }else{
+            $company = Company::where('id', Auth::guard('api')->user()->company_id )->update($data);
+        }
+        return response()->json($company);
+    }
+
+    public function allUser(){
+        $users = User::get();
+        return response()->json($users);
     }
 }

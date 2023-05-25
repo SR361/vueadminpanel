@@ -10,6 +10,8 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CategorieController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\SettingController;
+use App\Http\Controllers\API\CurrencieController;
+use App\Http\Controllers\API\ProjectCategories;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,6 +23,7 @@ use App\Http\Controllers\API\SettingController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
 Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 
@@ -40,6 +43,7 @@ Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(fu
         Route::delete('/child-categories/{categorie}', [CategorieController::class, 'childDestory']);
 
         Route::get('/users', [UserController::class, 'index']);
+        Route::get('/allusers', [UserController::class, 'allUser']);
         Route::post('/users', [UserController::class, 'store']);
         Route::patch('/users/{user}/change-role', [UserController::class, 'changeRole']);
         Route::put('/users/{user}', [UserController::class, 'update']);
@@ -48,6 +52,8 @@ Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(fu
         Route::post('/updateprofile', [UserController::class, 'updateProfile']);
         Route::get('/getuserprofile', [UserController::class, 'getUserProfile']);
         Route::post('/changepassword', [UserController::class, 'changePassword']);
+        Route::post('/createcompany', [UserController::class, 'createCompany']);
+        Route::get('/getcompaneis', [UserController::class, 'getCompaneis']);
 
         Route::get('/clients', [ClientController::class, 'index']);
 
@@ -71,5 +77,13 @@ Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(fu
         Route::post('/setting/generalsetting', [SettingController::class, 'generalSettingSave']);
         Route::get('/setting/getsetting', [SettingController::class, 'getSetting']);
         Route::get('/setting/resetsetting', [SettingController::class, 'resetSetting']);
+
+        Route::get('/currencie', [CurrencieController::class, 'index']);
+
+        Route::get('/project-categorie/all', [ProjectCategories::class, 'all']);
+        Route::get('/project-categorie', [ProjectCategories::class, 'index']);
+        Route::post('/project-categorie/create', [ProjectCategories::class, 'store']);
+        Route::put('/project-categorie/{projectcategorie}', [ProjectCategories::class, 'update']);
+        Route::delete('/project-categorie/delete/{projectcategorie}', [ProjectCategories::class, 'destroy']);
     });
 });

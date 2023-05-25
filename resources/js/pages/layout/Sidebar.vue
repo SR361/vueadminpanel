@@ -80,8 +80,48 @@
                             </p>
                         </router-link>
                     </li>
+                    <li class="nav-item" :class="$route.path.startsWith('/admin/projects') ? 'active' : ''">
+                        <a href="#" class="nav-link" :class="$route.path.startsWith('/admin/projects') ? 'active' : ''">
+                            <i class="nav-icon fas fa-project-diagram"></i>
+                            <p>
+                                Projects
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <router-link class="nav-link" to="/admin/projects" :class="$route.path.startsWith('/admin/project-categories/create') ? 'active' : ''">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>
+                                        Project <i class="right fas fa-angle-left"></i>
+                                    </p>
+                                </router-link>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <router-link to="/admin/projects" active-class="active" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Project Management</p>
+                                        </router-link>
+                                    </li>
+                                    <li class="nav-item">
+                                        <router-link class="nav-link" to="/admin/projects/create" :class="$route.path.startsWith('/admin/projects/create') ? 'active' : ''">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Add Projects</p>
+                                        </router-link>
+                                    </li>
+
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <router-link to="/admin/project-categories/create" active-class="active" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Project Categorie</p>
+                                </router-link>
+                            </li>
+                        </ul>
+                    </li>
                     <li class="nav-item">
-                        <router-link to="/admin/chat" active-class="active" class="nav-link">
+                        <router-link to="/admin/chat" :class="$route.path.startsWith('/admin/chat') ? 'active' : ''" class="nav-link">
                             <i class="nav-icon fas fa-comments"></i>
                             <p>
                                 Chat

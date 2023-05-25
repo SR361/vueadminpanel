@@ -38,6 +38,9 @@
                     $("body").addClass(sidebarsetting[index]);
                 }
             }
+        }else{
+            $(".main-sidebar").addClass('sidebar-dark-primary');
+            $(".brand-image").attr('src','https://adminlte.io/themes/v3/dist/img/AdminLTELogo.png');
         }
     });
 </script>
@@ -53,7 +56,7 @@
                 <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
             </li>
             <li class="nav-item d-none d-sm-inline-block">
-                <a href="index3.html" class="nav-link">Home</a>
+                <a href="javascript:;" class="nav-link">Home</a>
             </li>
             <li class="nav-item d-none d-sm-inline-block">
                 <a href="#" class="nav-link">Contact</a>

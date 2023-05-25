@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('token')->nullable();
-            $table->integer('connection_id')->nullable();
-            $table->enum('user_status', ['Offline', 'Online'])->default('Offline');
+            // $table->text('company_id')->nullable()->after('id');
+            $table->bigInteger('company_id')->unsigned()->nullable()->after('id');
+            $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 
@@ -24,9 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('token');
-            $table->dropColumn('connection_id');
-            $table->dropColumn('user_status');
+            $table->dropColumn('company_id');
         });
     }
 };

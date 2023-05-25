@@ -2,6 +2,8 @@ import './bootstrap';
 
 import 'admin-lte/plugins/bootstrap/js/bootstrap.bundle.min.js';
 import 'admin-lte/dist/js/adminlte.min.js';
+import 'admin-lte/plugins/select2/js/select2.js';
+
 import { createApp } from 'vue/dist/vue.esm-bundler.js';
 import { createRouter, createWebHistory } from 'vue-router';
 // import Routes from './routes.js';
@@ -19,6 +21,10 @@ import ChildCategorieList from './pages/categories/ChildCategorie/ChildCategorie
 import Products from './pages/product/ProductList.vue';
 import ProductCreate from './pages/product/ProductCreate.vue';
 import Categorie from './pages/categories/Categorie.vue';
+
+import Projects from './pages/projects/Projects.vue';
+import ProjectsCreate from './pages/projects/ProjectsCreate.vue';
+import ProjectCategories from './pages/projectCategories/ProjectCategories.vue';
 
 const routes = [
     {
@@ -129,6 +135,30 @@ const routes = [
         path : '/admin/chat',
         name : 'admin.chat',
         component : Chat,
+        meta : {
+            requiresAuth : true
+        }
+    },
+    {
+        path : '/admin/projects',
+        name : 'admin.projects',
+        component : Projects,
+        meta : {
+            requiresAuth : true
+        }
+    },
+    {
+        path : '/admin/projects/create',
+        name : 'admin.projects.create',
+        component : ProjectsCreate,
+        meta : {
+            requiresAuth : true
+        }
+    },
+    {
+        path : '/admin/project-categories/create',
+        name : 'admin.project.categories.create',
+        component : ProjectCategories,
         meta : {
             requiresAuth : true
         }

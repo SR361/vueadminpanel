@@ -16,6 +16,7 @@
         location : '',
         skills : '',
     });
+
     const config = {
         headers: {
             'content-type': 'multipart/form-data',
@@ -63,7 +64,6 @@
         }
         axios.post('/api/v1/updateprofile', values, config)
         .then(function (response) {
-            // console.log(response.data);
             let user = JSON.stringify(response.data);
             localStorage.setItem("user",user);
             $('.admin_name').text(response.data.name);
@@ -81,9 +81,36 @@
         formSubmit(values, actions);
     }
 
+    const companySettingFormValues = ref({
+        companyname : '',
+        companyemail : '',
+        companyphone : '',
+        companywebsite : '',
+    })
+
+    const companysettingsubmit = (values,actions) => {
+        companysettingFormSubmit(values,actions);
+    }
+
+    const companysettingFormSubmit = (values, {setErrors}) => {
+        axios.post('/api/v1/createcompany', values, config)
+        .then(function (response) {
+            if (response.status === 200) {
+                toastr.success('Company details update successfully!');
+            }
+        })
+        .catch((error) => {
+            if (error.response) {
+                setErrors(error.response.data.errors);
+            }
+        })
+    }
+
     const getUserProfile = () => {
         axios.get('/api/v1/getuserprofile',config)
         .then(response=>{
+            let user = JSON.stringify(response.data);
+            localStorage.setItem("user",user);
             formValues.value = {
                 name : response.data.name,
                 email : response.data.email,
@@ -97,10 +124,26 @@
         })
     }
 
+    const getCompany = () => {
+        axios.get('/api/v1/getcompaneis',config)
+        .then(response=>{
+            console.log(response.data);
+            companySettingFormValues.value = {
+                companyname : response.data.company_name,
+                companyemail : response.data.company_email,
+                companyphone : response.data.company_phone,
+                companywebsite : response.data.website,
+            }
+        }).catch(error=>{
+            console.log(error)
+        })
+    }
+
     onMounted(() => {
+        getUserProfile();
+        getCompany();
         let user = JSON.parse(localStorage.getItem("user"));
         $('.profile-user-img').attr('src',user.profile_photo);
-        getUserProfile();
     })
 </script>
 <template>
@@ -176,6 +219,7 @@
                                     <ul class="nav nav-pills">
                                         <li class="nav-item"><a class="nav-link active" href="#settings" data-toggle="tab">Settings</a></li>
                                         <li class="nav-item"><a class="nav-link" href="#changepassword" data-toggle="tab">Change Password</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#companysetting" data-toggle="tab">Company Setting</a></li>
                                     </ul>
                                 </div>
                                 <div class="card-body">
@@ -337,7 +381,8 @@
                                             </Form>
                                         </div>
                                         <div class="tab-pane" id="changepassword">
-                                            <Form ref="form" @submit="changepasswordsubmit" :validation-schema="changepasswordschema" v-slot="{ errors }" :initial-values="changePasswordFormValues" class="form-horizontal">
+                                            <!-- :initial-values="changePasswordFormValues" -->
+                                            <Form ref="form" @submit="changepasswordsubmit" :validation-schema="changepasswordschema" v-slot="{ errors }"  class="form-horizontal">
                                                 <div class="form-group row">
                                                     <label  class="col-sm-3">New Password Pasword</label>
                                                     <div class="input-group col-sm-9">
@@ -361,6 +406,51 @@
                                                 <div class="form-group row ">
                                                     <div class="col-sm-12 d-flex justify-content-end">
                                                         <button type="submit" class="btn btn-success">Change Password</button>
+                                                    </div>
+                                                </div>
+                                            </Form>
+                                        </div>
+                                        <div class="tab-pane" id="companysetting">
+                                            <Form ref="form" @submit="companysettingsubmit" v-slot="{ errors }" :initial-values="companySettingFormValues" class="form-horizontal">
+                                                <div class="form-group row">
+                                                    <label  class="col-sm-3">Company Name</label>
+                                                    <div class="input-group col-sm-9">
+                                                        <div class="custom-file">
+                                                            <Field id="companyname" v-model="companySettingFormValues.companyname" name="companyname"  :class="{ 'is-invalid':errors.companyname }" class="form-control" type="text" placeholder="e.g. Acme Corporation" />
+                                                            <span class="invalid-feedback ml-3">{{ errors.companyname }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <label  class="col-sm-3">Company Email</label>
+                                                    <div class="input-group col-sm-9">
+                                                        <div class="custom-file">
+                                                            <Field id="companyemail" v-model="companySettingFormValues.companyemail" name="companyemail"  :class="{ 'is-invalid':errors.companyemail }" class="form-control" type="text" placeholder="e.g. johndoe@example.com" />
+                                                            <span class="invalid-feedback ml-3">{{ errors.companyemail }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <label  class="col-sm-3">Company Phone</label>
+                                                    <div class="input-group col-sm-9">
+                                                        <div class="custom-file">
+                                                            <Field id="companyphone" v-model="companySettingFormValues.companyphone" name="companyphone"  :class="{ 'is-invalid':errors.companyphone }" class="form-control" type="text" placeholder="e.g. 9875486548" />
+                                                            <span class="invalid-feedback ml-3">{{ errors.companyphone }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <label  class="col-sm-3">Company Website</label>
+                                                    <div class="input-group col-sm-9">
+                                                        <div class="custom-file">
+                                                            <Field id="companywebsite" v-model="companySettingFormValues.companywebsite" name="companywebsite"  :class="{ 'is-invalid':errors.companywebsite }" class="form-control" type="url" placeholder="e.g. https://www.spacex.com/" />
+                                                            <span class="invalid-feedback ml-3">{{ errors.companywebsite }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row ">
+                                                    <div class="col-sm-12 d-flex justify-content-end">
+                                                        <button type="submit" class="btn btn-success">Save</button>
                                                     </div>
                                                 </div>
                                             </Form>
