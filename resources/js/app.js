@@ -2,11 +2,12 @@ import './bootstrap';
 
 import 'admin-lte/plugins/bootstrap/js/bootstrap.bundle.min.js';
 import 'admin-lte/dist/js/adminlte.min.js';
-import 'admin-lte/plugins/select2/js/select2.js';
+import '/node_modules/jquery/dist/jquery.js';
+import '/node_modules/vue3-select2-component/dist/Select2.min.js';
 
 import { createApp } from 'vue/dist/vue.esm-bundler.js';
 import { createRouter, createWebHistory } from 'vue-router';
-// import Routes from './routes.js';
+import Select2 from 'vue3-select2-component';
 
 import Dashboard from './components/Dashboard.vue';
 import Login from './components/auth/Login.vue';
@@ -178,11 +179,12 @@ router.beforeEach((to,from) => {
         return { name : 'admin.dashboard' }
     }
 })
+// Vue.prototype.jQuery = jQuery
+// window.jQuery = jQuery
 
 const app = createApp({});
-
 export default router;
-
 app.use(router);
-
+// app.use(jQuery);
+app.component('Select2',Select2);
 app.mount('#app');

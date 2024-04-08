@@ -33,13 +33,13 @@ return new class extends Migration
             $table->foreign('category_id')->references('id')->on('project_categories')->onDelete('cascade')->onUpdate('cascade');
 
             $table->bigInteger('client_id')->unsigned()->nullable();
-            $table->foreign('client_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade')->onUpdate('cascade');
 
             $table->mediumText('feedback')->nullable();
             $table->enum('manual_timelog', ['enable', 'disable'])->default('disable');
             $table->enum('client_view_task', ['enable', 'disable'])->default('disable');
             $table->enum('allow_client_notification', ['enable', 'disable'])->default('disable');
-            $table->tinyInteger('completion_percent');
+            $table->tinyInteger('completion_percent')->nullable();
             $table->enum('calculate_task_progress', ['true', 'false'])->default('true');
             $table->double('project_budget', 20, 2)->nullable();
 

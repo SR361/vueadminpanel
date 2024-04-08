@@ -12,6 +12,7 @@ use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\SettingController;
 use App\Http\Controllers\API\CurrencieController;
 use App\Http\Controllers\API\ProjectCategories;
+use App\Http\Controllers\API\ProjectController;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,7 +67,7 @@ Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(fu
         Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']);
 
         Route::get('/products', [ProductController::class, 'index']);
-        Route::post('/product/create', [ProductController::class, 'store']);
+        Route::post('/products/create', [ProductController::class, 'store']);
         Route::get('/product/{product}/edit', [ProductController::class, 'edit']);
         Route::post('/product/{product}/edit', [ProductController::class, 'update']);
         Route::get('/product-gallery-image', [ProductController::class, 'productGalleryImage']);
@@ -85,5 +86,8 @@ Route::middleware(['ApiLocalization'])->prefix('v1')->namespace('API')->group(fu
         Route::post('/project-categorie/create', [ProjectCategories::class, 'store']);
         Route::put('/project-categorie/{projectcategorie}', [ProjectCategories::class, 'update']);
         Route::delete('/project-categorie/delete/{projectcategorie}', [ProjectCategories::class, 'destroy']);
+
+        Route::get('/projects', [ProjectController::class, 'index']);
+        Route::post('/projects/create', [ProjectController::class, 'store']);
     });
 });
